@@ -1,8 +1,8 @@
 "use client";
-import { useState } from "react";
+import { MouseEventHandler, useState } from "react";
 
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../../../lib/firebase";
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "lib/firebase";
 
 export default function Page() {
     const [error, setError] = useState("");
@@ -15,12 +15,19 @@ export default function Page() {
   
       try {
         await signInWithEmailAndPassword(auth, email, password);
-        console.log("Signed in!");
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);
         }
       }
+    };
+
+    const handleGoogleLogin = async () => {
+        const result = await signInWithPopup(auth, googleProvider);
+        
+        const user = result.user;
+        console.log(user);
+        console.log('LOGGED IN!!!!');
     };
 
     return (
@@ -35,10 +42,10 @@ export default function Page() {
             </div>
             <div>
                 <h2 className="text-xl font-semibold">
-                    Create account
+                    Welcome Back
                 </h2>
                 <h3 className="text-sm font-thin opacity-80">
-                    Join our community of learners today
+                    Sign in to continue your learning journey
                 </h3>
             </div>
             <div className="flex flex-col gap-4 mt-5">
@@ -46,16 +53,16 @@ export default function Page() {
                     <input type="email" className="input validator" name="email" placeholder="Email address" required  />
                 </fieldset>
                 <fieldset className="fieldset flex flex-col gap-1">
-                    <input type="password" className="input validator" name="password" placeholder="Password" required />
+                    <input type="password" className="input" name="password" placeholder="Password" required />
                 </fieldset>
                 <button className="btn btn-primary">Sign In</button>
                 <div className="divider text-sm opacity-80">OR</div>
-                <button className="btn">
+                <button onClick={handleGoogleLogin} className="btn">
                     <svg aria-label="Google logo" width="16" height="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g><path d="m0 0H512V512H0" fill="#fff"></path><path fill="#34a853" d="M153 292c30 82 118 95 171 60h62v48A192 192 0 0190 341"></path><path fill="#4285f4" d="m386 400a140 175 0 0053-179H260v74h102q-7 37-38 57"></path><path fill="#fbbc02" d="m90 341a208 200 0 010-171l63 49q-12 37 0 73"></path><path fill="#ea4335" d="m153 219c22-69 116-109 179-50l55-54c-78-75-230-72-297 55"></path></g></svg>
                     Login with Google
                 </button>
                 <label htmlFor="tos" className="text-sm text-center">
-                    Already have an account?{' '}
+                    Don't have an account?{' '}
                     <a href="/register" className="link link-primary">
                         Sign up
                     </a>
