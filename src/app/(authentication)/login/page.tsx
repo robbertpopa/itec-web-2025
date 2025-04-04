@@ -9,7 +9,7 @@ export default function Page() {
     const [visible, setVisible] = useState(false);
 
     const toggleVisible = () => {
-        setVisible((previusVisible) => !previusVisible);
+        setVisible((...previusVisible) => !previusVisible);
     };
   
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
