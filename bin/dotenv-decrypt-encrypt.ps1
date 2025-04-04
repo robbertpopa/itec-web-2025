@@ -20,9 +20,9 @@ $password = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
 
 try {
     if ($encrypt) {
-        $password | openssl aes-256-cbc -a -salt -pbkdf2 -in ../.env -out ../.env.enc -pass stdin
+        $password | openssl aes-256-cbc -a -salt -pbkdf2 -in ../.env.local -out ../.env.local.enc -pass stdin
     } else {
-        $password | openssl aes-256-cbc -d -a -salt -pbkdf2 -in ../.env.enc -out ../.env -pass stdin
+        $password | openssl aes-256-cbc -d -a -salt -pbkdf2 -in ../.env.local.enc -out ../.env.local -pass stdin
     }
 } catch {
     Write-Error "Error occurred during $($encrypt ? 'encryption' : 'decryption'): $_"

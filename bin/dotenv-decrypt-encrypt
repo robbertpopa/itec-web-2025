@@ -14,8 +14,8 @@ else
 fi
 
 if [[ "$encrypt" -eq "1" ]]; then
-    openssl aes-256-cbc -a -salt -pbkdf2 -in ../.env -out ../.env.enc
+    openssl aes-256-cbc -a -salt -pbkdf2 -in ../.env.local -out ../.env.local.enc
 else
-    openssl aes-256-cbc -d -a -salt -pbkdf2 -in ../.env.enc -out ../.env
+    openssl aes-256-cbc -d -a -salt -pbkdf2 -in ../.env.local.enc -out ../.env.local
 fi
 
