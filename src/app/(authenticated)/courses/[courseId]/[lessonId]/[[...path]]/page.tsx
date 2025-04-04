@@ -3,6 +3,7 @@ import { ref, getMetadata, getDownloadURL } from "firebase/storage"
 import { notFound, redirect, RedirectType } from "next/navigation";
 import { NextResponse } from "next/server";
 import { firebase } from "lib/firebaseServer";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 
 interface Props {
     markdown?: string;
@@ -38,7 +39,7 @@ export default async function Page({ params }: { params: Promise<ParamsType> }) 
     if (files.length + prefixes.length > 1) {
         files.shift();
 
-        const mainFile = files.find(f => f.name == "main.md");
+        const mainFile = files.find(f => f.name.split('/').filter(x => x != "").at(-1) == "main.md");
         const markdown = (await mainFile?.download())?.toString();
 
         const bucketFiles = files.map(f => ({
@@ -88,7 +89,7 @@ export default async function Page({ params }: { params: Promise<ParamsType> }) 
 
 function render(props: Props) {
     return <>
-        {props.markdown && <p>{props.markdown}</p>}
+        {props.markdown && <MarkdownRenderer markdown={props.markdown}/>}
         {props.children && props.children.map(f => {
             return <div key={f.name}>
                 <span>{f.name} {f.mimeType ?? "folder"} {f.size}</span>
