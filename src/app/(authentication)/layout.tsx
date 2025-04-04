@@ -4,7 +4,7 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-      <div className="size-full flex justify-center items-center box-border p-4">
+      <div className="size-full flex justify-center items-center box-border">
         {children}
       </div>
   )
