@@ -8,6 +8,7 @@ import {
 } from "firebase/auth";
 import { auth, googleProvider } from "lib/firebase";
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function Page() {
   const [error, setError] = useState("");
@@ -56,11 +57,10 @@ export default function Page() {
   };
 
     return (
-        <form onSubmit={handleSubmit} className="shadow-lg rounded-md border border-neutral/10 p-10 w-full max-w-100">
-            <div className="text-center mb-5">
-                <h2 className="text-xl font-semibold">
-                    OfCoursly
-                </h2>
+        <form onSubmit={handleSubmit} className="shadow-lg rounded-md border border-neutral/10 p-10 w-full max-w-100 min-w-100">
+            <div className="flex flex-col items-center justify-center mb-5 w-full">
+                <Image src="/images/of_coursly.png" alt="" width={100} height={100} />
+
                 <h3 className="text-sm font-thin opacity-80">
                     Your learning platform
                 </h3>
