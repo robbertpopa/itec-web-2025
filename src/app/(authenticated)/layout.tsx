@@ -10,7 +10,6 @@ import CreateCourseForm from "@/components/ui/CreateCourseForm";
 import React, { createContext, useEffect, useState } from "react";
 import { get, ref } from "firebase/database";
 import { auth, db } from "lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
 
 interface UserData {
   fullName: string;
