@@ -1,6 +1,7 @@
 "use client"
-import { ref, child, get, query, limitToFirst, startAfter, orderByKey } from "firebase/database";
-import { db } from "lib/firebase";
+import { ref as dbRef, child, get, query, limitToFirst, startAfter, orderByKey } from "firebase/database";
+import { ref as storageRef, getDownloadURL } from "firebase/storage";
+import { db, storage } from "lib/firebase";
 import { useState, useEffect } from "react";
 import CourseCard from "@/components/ui/CourseCard";
 import CoursePreview from "lib/models/coursePreview";
@@ -19,19 +20,19 @@ export default function Page() {
     const fetchCourses = async (key: string | null = null) => {
         setLoading(true);
         try {
-            const dbRef = ref(db);
+            const dbReference = dbRef(db);
             let coursesQuery;
             
             if (key) {
                 coursesQuery = query(
-                    child(dbRef, "/courses"),
+                    child(dbReference, "/courses"),
                     orderByKey(),
                     startAfter(key),
                     limitToFirst(ITEMS_PER_PAGE)
                 );
             } else {
                 coursesQuery = query(
-                    child(dbRef, "/courses"),
+                    child(dbReference, "/courses"),
                     orderByKey(),
                     limitToFirst(ITEMS_PER_PAGE)
                 );
@@ -41,10 +42,23 @@ export default function Page() {
             
             if (snapshot.exists()) {
                 const rawData = snapshot.val();
-                const courses: CoursePreview[] = Object.entries(rawData).map(
+                
+                let courses: CoursePreview[] = Object.entries(rawData).map(
                     ([id, value]) => ({
                         id,
                         ...(value as Omit<CoursePreview, "id">),
+                    })
+                );
+                
+                courses = await Promise.all(
+                    courses.map(async (course) => {
+                        try {
+                            const imageRef = storageRef(storage, `${course.id}/cover.webp`);
+                            const imageUrl = await getDownloadURL(imageRef);
+                            return { ...course, imageUrl };
+                        } catch (error) {
+                            return course;
+                        }
                     })
                 );
                 
