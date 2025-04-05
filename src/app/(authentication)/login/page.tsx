@@ -38,12 +38,32 @@ export default function Page() {
             const snapshot = await get(userRef);
 
             if (!snapshot.exists()) {
-                const full_name = user.displayName;
-                set(ref(db, 'users/' + user?.uid), {
-                    email: user?.email,
-                    full_name: full_name,
-                    profile_picture: null,
-                });
+                try {
+                    const token = await auth?.currentUser?.getIdToken();
+                        
+                    const formData = new FormData();
+                    formData.append('full_name', user.displayName || "");
+            
+                    if (user?.photoURL) {
+                        formData.append('image', user?.photoURL);
+                    }
+                    
+                    const response = await fetch('/api/users', {
+                        method: 'POST',
+                        headers: {
+                        'Authorization': `Bearer ${token}`,
+                        },
+                        body: formData,
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Failed to create user');
+                    }
+                } catch(e) {
+        
+                };
             }
     
             router.push('/');

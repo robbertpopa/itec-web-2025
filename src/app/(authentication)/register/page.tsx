@@ -37,9 +37,9 @@ export default function Page() {
         await sendEmailVerification(user);
 
         set(ref(db, 'users/' + user?.uid), {
-          email: user?.email,
-          full_name: full_name,
-          profile_picture: null,
+          fullName: full_name,
+          profilePicture: null,
+          createdAt: new Date().toISOString()
         });
   
         router.push('/');
@@ -58,18 +58,32 @@ export default function Page() {
       full_name = user.displayName || "";
 
       if (user) {
-        const userRef = ref(db, 'users/' + user.uid);
-        const snapshot = await get(userRef);
+        try {
+          const token = await auth?.currentUser?.getIdToken();
+            
+          const formData = new FormData();
+          formData.append('full_name', full_name);
 
-        if (!snapshot.exists()) {
-            const full_name = user.displayName;
-            const test = set(ref(db, 'users/' + user?.uid), {
-                email: user?.email,
-                full_name: full_name,
-                profile_picture: null,
-            });
-            console.log(test);
-        }
+          if (user?.photoURL) {
+            formData.append('image', user?.photoURL);
+          }
+          
+          const response = await fetch('/api/users', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+            body: formData,
+          });
+          
+          const data = await response.json();
+          
+          if (!response.ok) {
+            throw new Error(data.error || 'Failed to create user');
+          }
+        } catch(e) {
+
+        };
 
         router.push('/');
       }
