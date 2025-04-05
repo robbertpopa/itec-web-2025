@@ -2,9 +2,10 @@
 import { MouseEventHandler, useState } from "react";
 
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "lib/firebase";
+import { auth, db, googleProvider } from "lib/firebase";
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { get, ref, set } from "firebase/database";
 
 export default function Page() {
     const [error, setError] = useState("");
@@ -33,6 +34,18 @@ export default function Page() {
         
         const user = result.user;
         if (user) {
+            const userRef = ref(db, 'users/' + user.uid);
+            const snapshot = await get(userRef);
+
+            if (!snapshot.exists()) {
+                const full_name = user.displayName;
+                set(ref(db, 'users/' + user?.uid), {
+                    email: user?.email,
+                    full_name: full_name,
+                    profile_picture: null,
+                });
+            }
+    
             router.push('/');
         }
     };

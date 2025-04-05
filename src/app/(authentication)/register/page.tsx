@@ -6,14 +6,16 @@ import {
   sendEmailVerification,
   signInWithPopup,
 } from "firebase/auth";
-import { auth, googleProvider } from "lib/firebase";
+import { auth, db, googleProvider } from "lib/firebase";
+import { ref, child, get, query, set } from "firebase/database";
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 export default function Page() {
   const [error, setError] = useState("");
   const router = useRouter();
-
+  var full_name: string = "";
+  
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -21,7 +23,7 @@ export default function Page() {
     const email = form.email.value;
     const password = form.password.value;
     const confirm_password = form.confirm_password.value;
-    const full_name = form.full_name.value;
+    full_name = form.full_name.value;
 
     if (password !== confirm_password) {
       setError("Passwords do not match.");
@@ -33,6 +35,13 @@ export default function Page() {
       const user = userCredential.user;
       if (user) {
         await sendEmailVerification(user);
+
+        set(ref(db, 'users/' + user?.uid), {
+          email: user?.email,
+          full_name: full_name,
+          profile_picture: null,
+        });
+  
         router.push('/');
       }
     } catch (err) {
@@ -46,7 +55,22 @@ export default function Page() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
+      full_name = user.displayName || "";
+
       if (user) {
+        const userRef = ref(db, 'users/' + user.uid);
+        const snapshot = await get(userRef);
+
+        if (!snapshot.exists()) {
+            const full_name = user.displayName;
+            const test = set(ref(db, 'users/' + user?.uid), {
+                email: user?.email,
+                full_name: full_name,
+                profile_picture: null,
+            });
+            console.log(test);
+        }
+
         router.push('/');
       }
     } catch (err) {
