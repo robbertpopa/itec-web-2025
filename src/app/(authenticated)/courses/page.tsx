@@ -6,7 +6,9 @@ import { useState, useEffect } from "react";
 import CourseCard from "@/components/ui/CourseCard";
 import CoursePreview from "lib/models/coursePreview";
 import Skeleton from "@/components/ui/Skeleton";
-import { Search } from "lucide-react";
+import { PlusCircle, Search } from "lucide-react";
+import Modal from "@/components/ui/Modal";
+import CreateCourseForm from "@/components/ui/CreateCourseForm";
 
 export default function Page() {
     const [courseData, setCourseData] = useState<CoursePreview[]>([]);
@@ -15,6 +17,7 @@ export default function Page() {
     const [lastKey, setLastKey] = useState<string | null>(null);
     const [hasMore, setHasMore] = useState<boolean>(true);
     const [searchTerm, setSearchTerm] = useState<string>("");
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
     const ITEMS_PER_PAGE = 8;
 
     const fetchCourses = async (key: string | null = null) => {
@@ -53,7 +56,7 @@ export default function Page() {
                 courses = await Promise.all(
                     courses.map(async (course) => {
                         try {
-                            const imageRef = storageRef(storage, `${course.id}/cover.webp`);
+                            const imageRef = storageRef(storage, `courses/${course.id}/cover.webp`);
                             const imageUrl = await getDownloadURL(imageRef);
                             return { ...course, imageUrl };
                         } catch (error) {
@@ -96,6 +99,10 @@ export default function Page() {
         }
     };
 
+    const handleCreateSuccess = (courseId: string) => {
+        fetchCourses();
+    };
+
     const filteredCourses = searchTerm
         ? courseData.filter(course => 
             course.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -106,23 +113,39 @@ export default function Page() {
     return (
         <div className="container mx-auto px-4 py-8">
             <header className="mb-8">
-                <h1 className="text-4xl font-bold mb-4 text-neutral-900">Courses</h1>
-                <p className="text-neutral-600 mb-6">
-                    Browse our collection of available courses
-                </p>
-                <div className="relative mb-6">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <Search className="h-5 w-5 text-neutral-400" />
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <div className="relative flex-grow max-w-md w-full">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <Search className="h-5 w-5 text-neutral-400" />
+                        </div>
+                        <input 
+                            type="text" 
+                            placeholder="Search courses..." 
+                            className="pl-10 pr-4 py-3 w-full rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                     </div>
-                    <input 
-                        type="text" 
-                        placeholder="Search courses..." 
-                        className="pl-10 pr-4 py-3 w-full rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                    <button 
+                        onClick={() => setIsCreateModalOpen(true)}
+                        className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+                    >
+                        <PlusCircle className="h-5 w-5 mr-2" />
+                        Create Course
+                    </button>
                 </div>
             </header>
+
+            <Modal 
+                isOpen={isCreateModalOpen} 
+                onClose={() => setIsCreateModalOpen(false)}
+                title="Create New Course"
+            >
+                <CreateCourseForm 
+                    onClose={() => setIsCreateModalOpen(false)} 
+                    onSuccess={handleCreateSuccess}
+                />
+            </Modal>
 
             {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
@@ -158,6 +181,13 @@ export default function Page() {
                     ) : (
                         <p className="text-neutral-500">
                             There are no courses available at the moment.
+                            <br />
+                            <button 
+                                onClick={() => setIsCreateModalOpen(true)}
+                                className="text-primary hover:underline mt-2"
+                            >
+                                Create your first course
+                            </button>
                         </p>
                     )}
                 </div>

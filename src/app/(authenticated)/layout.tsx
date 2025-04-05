@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { mainNavLinks } from "lib/navigation";
 import useRequireEmailVerified from "lib/hooks/useRequireEmailVerified";
+import React from "react";
 
 export default function AuthenticatedLayout({
   children,
