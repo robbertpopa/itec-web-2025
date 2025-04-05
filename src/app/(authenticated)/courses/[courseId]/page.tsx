@@ -1,7 +1,6 @@
+import CourseDetails from "@/components/ui/CourseDetails";
 import { firebase } from "lib/firebaseServer"
 import Course from "lib/models/course";
-import Link from "next/link";
-
 
 export default async function Page({ params }:
     { params: Promise<{ courseId: string }> }) {
@@ -23,23 +22,17 @@ export default async function Page({ params }:
     }) : [null]
 
     return (<>
-        <h1 className="text-2xl">{course.name}</h1>
-        {course.description != null &&
-            <p>{course.description}</p>}
-        {imageUrl && <img src={imageUrl} alt="cover image" className="max-w-full max-h-lg"/>}
-        <p>{`Owned by: ${owner.displayName}`}</p>
-        <h2 className="text-lg">Lessons:</h2>
-        {course.lessons != null ? <ul>
-            {course.lessons.map((l, idx) => {
-                return <li key={idx}>
-                    <Link href={`/courses/${courseId}/${idx}`} className="link">
-                        {idx}: {l}
-                    </Link>
-                </li>
-            })}
-        </ul>
-            :
-            <p>This course hasn't added any lessons yet.</p>
-        }
+        <CourseDetails 
+            course={{
+                id: courseId,
+                name: course.name,
+                description: course.description,
+                lessons: course.lessons,
+            }} 
+            owner={{
+                displayName: owner.displayName,
+            }} 
+            imageUrl={imageUrl} 
+        />
     </>)
 }
