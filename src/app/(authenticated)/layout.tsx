@@ -2,13 +2,22 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { mainNavLinks } from "lib/navigation";
 import useRequireEmailVerified from "lib/hooks/useRequireEmailVerified";
-import React, { useState } from "react";
 import { PlusCircle } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import CreateCourseForm from "@/components/ui/CreateCourseForm";
+import React, { createContext, useEffect, useState } from "react";
+import { get, ref } from "firebase/database";
+import { auth, db } from "lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+
+interface UserData {
+  fullName: string;
+  profilePicture: string;
+}
+
+export const UserContext = createContext<UserData | null>(null);
 
 export default function AuthenticatedLayout({
   children,
@@ -17,40 +26,91 @@ export default function AuthenticatedLayout({
 }) {
   useRequireEmailVerified();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
-
   const handleCreateSuccess = (courseId: string) => {
     setIsCreateModalOpen(false);
   };
 
+  const [userData, setUserData] = useState<UserData | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const userRef = ref(db, "users/" + user.uid);
+        const snapshot = await get(userRef);
+        setUserData(snapshot.val());
+      }
+    });
+    return unsubscribe;
+  }, []);
+
   return (
-    <div className="w-full flex flex-col justify-start items-start box-border">
-      <nav className="navbar bg-base-100 shadow px-6">
-        <div className="navbar-start">
-          <Link href="/" className="flex items-center gap-2">
-            <Image
-              src="/images/of_coursly.png"
-              alt="OfCoursly Logo"
-              width={64}
-              height={64}
-              className="cursor-pointer"
-            />
-          </Link>
-
-          <div className="hidden lg:flex">
-            <ul className="menu menu-horizontal px-1">
-              {mainNavLinks.map((link, index) => (
-                <li key={`desktop-${link.name}-${index}`}>
-                  <Link href={link.href} className="btn btn-ghost">
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+    <UserContext.Provider value={userData}>
+      <div className="w-full flex flex-col justify-start items-start box-border">
+        <nav className="navbar bg-base-100 shadow px-6">
+          <div className="navbar-start">
+            <Link href="/" className="flex items-center gap-2">
+              <Image
+                src="/images/of_coursly.png"
+                alt="OfCoursly Logo"
+                width={64}
+                height={64}
+                className="cursor-pointer"
+              />
+            </Link>
+            <div className="hidden lg:flex">
+              <ul className="menu menu-horizontal px-1">
+                {mainNavLinks.map((link, index) => (
+                  <li key={`desktop-${link.name}-${index}`}>
+                    <Link href={link.href} className="btn btn-ghost">
+                      {link.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="lg:hidden">
+              <div className="dropdown">
+                <label tabIndex={0} className="btn btn-ghost lg:hidden">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
+                  </svg>
+                </label>
+                <ul
+                  tabIndex={0}
+                  className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
+                >
+                  {mainNavLinks.map((link, index) => (
+                    <li key={`mobile-${link.name}-${index}`}>
+                      <Link href={link.href} className="btn btn-ghost">
+                        {link.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           </div>
-
-          <div className="lg:hidden">
-            <div className="dropdown">
-              <label tabIndex={0} className="btn btn-ghost lg:hidden">
+          <div className="navbar-end gap-2">
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="btn btn-primary btn-sm hidden sm:flex"
+            >
+              <PlusCircle size={16} className="mr-1" />
+              Create Course
+            </button>
+            <button className="btn btn-ghost btn-circle">
+              <div className="indicator">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-5 w-5"
@@ -62,92 +122,54 @@ export default function AuthenticatedLayout({
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
-                    d="M4 6h16M4 12h16M4 18h16"
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
                   />
                 </svg>
-              </label>
-              <ul
-                tabIndex={0}
-                className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
-              >
-                {mainNavLinks.map((link, index) => (
-                  <li key={`mobile-${link.name}-${index}`}>
-                    <Link href={link.href} className="btn btn-ghost">
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
+                <span className="badge badge-xs badge-primary indicator-item"></span>
+              </div>
+            </button>
+            <Link href="/profile" className="no-underline">
+              <div className="flex flex-row justify-center items-center gap-2 cursor-pointer">
+                <div className="avatar">
+                  <div className="w-10 h-10 rounded-full overflow-hidden">
+                    {userData ? (
+                      <img
+                        src={
+                          userData.profilePicture ||
+                          "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+                        }
+                        alt="Profile picture"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-gray-300 rounded-full animate-pulse" />
+                    )}
+                  </div>
+                </div>
+                <div className="hidden sm:flex font-semibold">
+                  {userData ? (
+                    userData.fullName
+                  ) : (
+                    <div className="h-4 w-20 bg-gray-300 rounded animate-pulse" />
+                  )}
+                </div>
+              </div>
+            </Link>
           </div>
-        </div>
-
-        <div className="navbar-end gap-2">
-          <button 
-            onClick={() => setIsCreateModalOpen(true)}
-            className="btn btn-primary btn-sm hidden sm:flex"
-          >
-            <PlusCircle size={16} className="mr-1" />
-            Create Course
-          </button>
-
-          <button className="btn btn-ghost btn-circle">
-            <div className="indicator">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                />
-              </svg>
-              <span className="badge badge-xs badge-primary indicator-item"></span>
-            </div>
-          </button>
-
-          <Link href="/profile" className="no-underline">
-            <div className="flex flex-row justify-center items-center gap-2 cursor-pointer">
-              <div className="avatar">
-                <div className="w-10 rounded-full overflow-hidden">
-                  <img
-                    src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-                    alt="Profile picture"
-                  />
-                </div>
-              </div>
-
-              <div className="avatar avatar-placeholder hidden">
-                <div className="bg-neutral text-neutral-content w-10 rounded-full">
-                  <span className="text-sm">R</span>
-                </div>
-              </div>
-
-              <div className="hidden sm:flex font-semibold">Robert Popa</div>
-            </div>
-          </Link>
-        </div>
-      </nav>
-
-      <Modal 
-        isOpen={isCreateModalOpen} 
-        onClose={() => setIsCreateModalOpen(false)}
-        title="Create New Course"
-      >
-        <CreateCourseForm 
-          onClose={() => setIsCreateModalOpen(false)} 
-          onSuccess={handleCreateSuccess}
-        />
-      </Modal>
-
-      <main className="w-full flex flex-col px-6 py-4 bg">
-        {children}
-      </main>
-    </div>
+        </nav>
+        <main className="w-full flex flex-col px-6 py-4 bg min-h-screen">
+          {children}
+        </main>
+        <Modal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          title="Create New Course"
+        >
+          <CreateCourseForm
+            onClose={() => setIsCreateModalOpen(false)}
+            onSuccess={handleCreateSuccess}
+          />
+        </Modal>
+      </div>
+    </UserContext.Provider>
   );
 }

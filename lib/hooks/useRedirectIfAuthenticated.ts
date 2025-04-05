@@ -7,7 +7,6 @@ import { auth } from "lib/firebase";
 
 export default function useRedirectIfAuthenticated() {
   const router = useRouter();
-  console.log("AICIIIIIIIII");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
