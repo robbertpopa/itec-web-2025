@@ -5,7 +5,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { mainNavLinks } from "lib/navigation";
 import useRequireEmailVerified from "lib/hooks/useRequireEmailVerified";
-import React from "react";
+import React, { useState } from "react";
+import { PlusCircle } from "lucide-react";
+import Modal from "@/components/ui/Modal";
+import CreateCourseForm from "@/components/ui/CreateCourseForm";
 
 export default function AuthenticatedLayout({
   children,
@@ -13,6 +16,11 @@ export default function AuthenticatedLayout({
   children: React.ReactNode;
 }) {
   useRequireEmailVerified();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
+
+  const handleCreateSuccess = (courseId: string) => {
+    setIsCreateModalOpen(false);
+  };
 
   return (
     <div className="w-full flex flex-col justify-start items-start box-border">
@@ -75,6 +83,14 @@ export default function AuthenticatedLayout({
         </div>
 
         <div className="navbar-end gap-2">
+          <button 
+            onClick={() => setIsCreateModalOpen(true)}
+            className="btn btn-primary btn-sm hidden sm:flex"
+          >
+            <PlusCircle size={16} className="mr-1" />
+            Create Course
+          </button>
+
           <button className="btn btn-ghost btn-circle">
             <div className="indicator">
               <svg
@@ -118,7 +134,18 @@ export default function AuthenticatedLayout({
         </div>
       </nav>
 
-      <main className="w-full flex flex-col px-6 py-4 bg min-h-screen">
+      <Modal 
+        isOpen={isCreateModalOpen} 
+        onClose={() => setIsCreateModalOpen(false)}
+        title="Create New Course"
+      >
+        <CreateCourseForm 
+          onClose={() => setIsCreateModalOpen(false)} 
+          onSuccess={handleCreateSuccess}
+        />
+      </Modal>
+
+      <main className="w-full flex flex-col px-6 py-4 bg">
         {children}
       </main>
     </div>

@@ -1,60 +1,57 @@
 "use client"
-import { ref as dbRef, child, get, query, limitToFirst, startAfter, orderByKey } from "firebase/database";
+import { ref as dbRef, child, get, query, orderByKey } from "firebase/database";
 import { ref as storageRef, getDownloadURL } from "firebase/storage";
 import { db, storage } from "lib/firebase";
 import { useState, useEffect } from "react";
 import CourseCard from "@/components/ui/CourseCard";
 import CoursePreview from "lib/models/coursePreview";
 import Skeleton from "@/components/ui/Skeleton";
-import { PlusCircle, Search } from "lucide-react";
-import Modal from "@/components/ui/Modal";
-import CreateCourseForm from "@/components/ui/CreateCourseForm";
+import { Search } from "lucide-react";
 
 export default function Page() {
     const [courseData, setCourseData] = useState<CoursePreview[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const [lastKey, setLastKey] = useState<string | null>(null);
-    const [hasMore, setHasMore] = useState<boolean>(true);
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [totalPages, setTotalPages] = useState<number>(1);
     const [searchTerm, setSearchTerm] = useState<string>("");
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
     const ITEMS_PER_PAGE = 8;
 
-    const fetchCourses = async (key: string | null = null) => {
+    const fetchCourses = async (page: number = 1) => {
         setLoading(true);
         try {
             const dbReference = dbRef(db);
-            let coursesQuery;
             
-            if (key) {
-                coursesQuery = query(
-                    child(dbReference, "/courses"),
-                    orderByKey(),
-                    startAfter(key),
-                    limitToFirst(ITEMS_PER_PAGE)
-                );
-            } else {
-                coursesQuery = query(
-                    child(dbReference, "/courses"),
-                    orderByKey(),
-                    limitToFirst(ITEMS_PER_PAGE)
-                );
+            const totalCountSnapshot = await get(child(dbReference, "/courses"));
+            if (totalCountSnapshot.exists()) {
+                const totalCourses = Object.keys(totalCountSnapshot.val()).length;
+                const calculatedTotalPages = Math.ceil(totalCourses / ITEMS_PER_PAGE);
+                setTotalPages(calculatedTotalPages);
             }
+
+            const coursesQuery = query(
+                child(dbReference, "/courses"),
+                orderByKey()
+            );
 
             const snapshot = await get(coursesQuery);
             
             if (snapshot.exists()) {
                 const rawData = snapshot.val();
                 
-                let courses: CoursePreview[] = Object.entries(rawData).map(
+                let allCourses: CoursePreview[] = Object.entries(rawData).map(
                     ([id, value]) => ({
                         id,
                         ...(value as Omit<CoursePreview, "id">),
                     })
                 );
                 
-                courses = await Promise.all(
-                    courses.map(async (course) => {
+                const startIndex = (page - 1) * ITEMS_PER_PAGE;
+                const endIndex = startIndex + ITEMS_PER_PAGE;
+                const paginatedCourses = allCourses.slice(startIndex, endIndex);
+                
+                const coursesWithImages = await Promise.all(
+                    paginatedCourses.map(async (course) => {
                         try {
                             const imageRef = storageRef(storage, `courses/${course.id}/cover.webp`);
                             const imageUrl = await getDownloadURL(imageRef);
@@ -65,21 +62,11 @@ export default function Page() {
                     })
                 );
                 
-                if (key) {
-                    setCourseData(prevCourses => [...prevCourses, ...courses]);
-                } else {
-                    setCourseData(courses);
-                }
-                
-                const lastCourse = courses[courses.length - 1];
-                setLastKey(lastCourse?.id || null);
-                
-                setHasMore(courses.length === ITEMS_PER_PAGE);
+                setCourseData(coursesWithImages);
+                setCurrentPage(page);
             } else {
-                if (!key) {
-                    setCourseData([]);
-                }
-                setHasMore(false);
+                setCourseData([]);
+                setTotalPages(1);
             }
         } catch (error) {
             console.error(error);
@@ -93,14 +80,28 @@ export default function Page() {
         fetchCourses();
     }, []);
 
-    const loadMore = () => {
-        if (lastKey && hasMore && !loading) {
-            fetchCourses(lastKey);
+    const handlePageChange = (page: number) => {
+        if (page >= 1 && page <= (searchTerm ? filteredTotalPages : totalPages) && page !== currentPage) {
+            if (searchTerm) {
+                setCurrentPage(page);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                fetchCourses(page);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         }
     };
 
-    const handleCreateSuccess = (courseId: string) => {
-        fetchCourses();
+    const goToPrevPage = () => {
+        if (currentPage > 1) {
+            handlePageChange(currentPage - 1);
+        }
+    };
+
+    const goToNextPage = () => {
+        if (currentPage < (searchTerm ? filteredTotalPages : totalPages)) {
+            handlePageChange(currentPage + 1);
+        }
     };
 
     const filteredCourses = searchTerm
@@ -109,9 +110,21 @@ export default function Page() {
             (course.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
           )
         : courseData;
+    
+    const filteredTotalPages = searchTerm
+        ? Math.max(1, Math.ceil(filteredCourses.length / ITEMS_PER_PAGE))
+        : totalPages;
+
+    const paginatedCourses = searchTerm
+        ? filteredCourses.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+        : filteredCourses;
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 flex flex-col min-h-[calc(100vh-150px)]">
             <header className="mb-8">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                     <div className="relative flex-grow max-w-md w-full">
@@ -126,26 +139,8 @@ export default function Page() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <button 
-                        onClick={() => setIsCreateModalOpen(true)}
-                        className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
-                    >
-                        <PlusCircle className="h-5 w-5 mr-2" />
-                        Create Course
-                    </button>
                 </div>
             </header>
-
-            <Modal 
-                isOpen={isCreateModalOpen} 
-                onClose={() => setIsCreateModalOpen(false)}
-                title="Create New Course"
-            >
-                <CreateCourseForm 
-                    onClose={() => setIsCreateModalOpen(false)} 
-                    onSuccess={handleCreateSuccess}
-                />
-            </Modal>
 
             {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
@@ -154,7 +149,7 @@ export default function Page() {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredCourses.map((course) => (
+                {paginatedCourses.map((course) => (
                     <CourseCard key={course.id} course={course} />
                 ))}
                 
@@ -181,29 +176,34 @@ export default function Page() {
                     ) : (
                         <p className="text-neutral-500">
                             There are no courses available at the moment.
-                            <br />
-                            <button 
-                                onClick={() => setIsCreateModalOpen(true)}
-                                className="text-primary hover:underline mt-2"
-                            >
-                                Create your first course
-                            </button>
                         </p>
                     )}
                 </div>
             )}
 
-            {hasMore && courseData.length > 0 && (
-                <div className="mt-10 text-center">
-                    <button
-                        onClick={loadMore}
-                        disabled={loading}
-                        className="px-6 py-3 bg-white border border-neutral-200 rounded-lg shadow-sm hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed text-neutral-700 font-medium transition"
-                    >
-                        {loading ? "Loading..." : "Load More Courses"}
-                    </button>
-                </div>
-            )}
+            <div className="mt-auto pt-10 flex justify-center">
+                {courseData.length > 0 && filteredTotalPages > 0 && (
+                    <div className="join">
+                        <button 
+                            className="join-item btn" 
+                            onClick={goToPrevPage}
+                            disabled={loading || currentPage === 1}
+                        >
+                            «
+                        </button>
+                        <button className="join-item btn">
+                            Page {currentPage} of {filteredTotalPages}
+                        </button>
+                        <button 
+                            className="join-item btn" 
+                            onClick={goToNextPage}
+                            disabled={loading || currentPage === filteredTotalPages}
+                        >
+                            »
+                        </button>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
