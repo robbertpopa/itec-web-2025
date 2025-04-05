@@ -19,25 +19,30 @@ interface UserData {
 
 export const UserContext = createContext<UserData | null>(null);
 
-export default function AuthenticatedLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function getInitials(name: string): string {
+  if (!name) return "";
+  const parts = name.trim().split(" ");
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return parts[0].charAt(0).toUpperCase() + parts[parts.length - 1].charAt(0).toUpperCase();
+}
+
+export default function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
   useRequireEmailVerified();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
-  const handleCreateSuccess = (courseId: string) => {
-    setIsCreateModalOpen(false);
-  };
-
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [avatarLoaded, setAvatarLoaded] = useState<boolean>(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    setAvatarLoaded(false);
+  }, [userData?.profilePicture]);
+
+  useEffect(() => {
+    const unsubscribe = auth.onIdTokenChanged(async (user) => {
       if (user) {
-        const userRef = ref(db, "users/" + user.uid);
+        const userRef = ref(db, `users/${user.uid}`);
         const snapshot = await get(userRef);
-        setUserData(snapshot.val());
+        setUserData(snapshot.val() ? { ...snapshot.val() } : null);
+        console.log("User data refreshed on token change");
       }
     });
     return unsubscribe;
@@ -131,34 +136,40 @@ export default function AuthenticatedLayout({
             <Link href="/profile" className="no-underline">
               <div className="flex flex-row justify-center items-center gap-2 cursor-pointer">
                 <div className="avatar">
-                  <div className="w-10 h-10 rounded-full overflow-hidden">
-                    {userData ? (
-                      <img
-                        src={
-                          userData.profilePicture ||
-                          "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-                        }
-                        alt="Profile picture"
-                      />
-                    ) : (
+                  <div className="w-10 h-10 rounded-full overflow-hidden relative">
+                    {userData === null ? (
                       <div className="w-10 h-10 bg-gray-300 rounded-full animate-pulse" />
+                    ) : userData.profilePicture ? (
+                      <>
+                        {!avatarLoaded && (
+                          <div className="w-10 h-10 bg-gray-300 rounded-full animate-pulse absolute inset-0 z-10" />
+                        )}
+                        <img
+                          src={`${userData.profilePicture}?t=${new Date().getTime()}`}
+                          alt=""
+                          className="w-full h-full object-cover"
+                          onLoad={() => setAvatarLoaded(true)}
+                        />
+                      </>
+                    ) : (
+                      <div className="w-10 h-10 bg-neutral-focus text-neutral-content rounded-full flex items-center justify-center">
+                        <span className="text-sm">{getInitials(userData.fullName)}</span>
+                      </div>
                     )}
                   </div>
                 </div>
                 <div className="hidden sm:flex font-semibold">
-                  {userData ? (
-                    userData.fullName
-                  ) : (
+                  {userData === null ? (
                     <div className="h-4 w-20 bg-gray-300 rounded animate-pulse" />
+                  ) : (
+                    userData.fullName
                   )}
                 </div>
               </div>
             </Link>
           </div>
         </nav>
-        <main className="w-full flex flex-col px-6 py-4 bg min-h-screen">
-          {children}
-        </main>
+        <main className="w-full flex flex-col px-6 py-4 bg min-h-screen">{children}</main>
         <Modal
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
@@ -166,7 +177,7 @@ export default function AuthenticatedLayout({
         >
           <CreateCourseForm
             onClose={() => setIsCreateModalOpen(false)}
-            onSuccess={handleCreateSuccess}
+            onSuccess={() => setIsCreateModalOpen(false)}
           />
         </Modal>
       </div>
