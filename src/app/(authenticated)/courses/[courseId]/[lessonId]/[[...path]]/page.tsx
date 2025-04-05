@@ -2,17 +2,12 @@ import { notFound, redirect, RedirectType } from "next/navigation";
 import { firebase } from "lib/firebaseServer";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import Link from "next/link";
+import CourseMaterialTable, { BucketFile } from "@/components/ui/CourseMaterialTable";
 
 interface Props {
     markdown?: string;
     children?: BucketFile[];
     path: string
-}
-
-interface BucketFile {
-    name: string
-    mimeType?: string
-    size: string
 }
 
 interface ParamsType {
@@ -77,17 +72,17 @@ export default async function Page({ params }: { params: Promise<ParamsType> }) 
         redirect(url, RedirectType.replace);
     }
 
-
     notFound();
 }
 
 function Component(props: Props) {
     return <>
         {props.markdown && <MarkdownRenderer markdown={props.markdown} />}
-        {props.children && props.children.map(f => {
+        <CourseMaterialTable fileData={props.children} path={props.path} />
+        {/* {props.children && props.children.map(f => {
             return <div key={f.name}>
-                <span><Link className="link" href={'/' + props.path + '/' + f.name}>{f.name}</Link> {f.mimeType ?? "folder"} {f.size}</span>
+                <span>{f.mimeType ?? "folder"} <Link className="link" href={'/' + props.path + '/' + f.name}>{f.name}</Link> {f.size}</span>
             </div>
-        })}
+        })} */}
     </>
 }
