@@ -66,36 +66,41 @@ export default function CourseMaterialTable({ fileData, path }: { markdown?: str
     }
 
     return (
-        <div className="overflow-x-auto">
-            <table className="table table-zebra w-full">
-                <thead>
-                    <tr>
-                        <th className="w-8"></th>
-                        <th>Name</th>
-                        <th className="w-24 text-right">Size</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {fileData.map((file) => (
-                        <tr key={file.name} className="hover:bg-base-200/50 transition-colors">
-                            <td className="text-base-content/70">
-                                {mapMimeTypeToIcon(file.mimeType)}
-                            </td>
-                            <td>
-                                <Link 
-                                    className="hover:text-primary transition-colors flex items-center gap-2" 
-                                    href={'/' + path + '/' + file.name}
-                                >
-                                    <span className="font-medium">{file.name}</span>
-                                </Link>
-                            </td>
-                            <td className="text-right text-sm font-mono text-base-content/70">
-                                {file.size}
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+        <div className="card bg-base-100 shadow-sm mt-8">
+            <div className="card-body p-0">
+                <h3 className="card-title text-lg p-4 border-b">Course Materials</h3>
+                <div className="overflow-x-auto">
+                    <table className="table table-zebra w-full">
+                        <thead>
+                            <tr>
+                                <th className="w-8"></th>
+                                <th>Name</th>
+                                <th className="w-24 text-right">Size</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {fileData.map((file) => (
+                                <tr key={file.name} className="hover:bg-base-200/50 transition-colors">
+                                    <td className="text-base-content/70">
+                                        {mapMimeTypeToIcon(file.mimeType)}
+                                    </td>
+                                    <td>
+                                        <Link 
+                                            className="hover:text-primary transition-colors flex items-center gap-2" 
+                                            href={'/' + path + '/' + file.name}
+                                        >
+                                            <span className="font-medium">{file.name}</span>
+                                        </Link>
+                                    </td>
+                                    <td className="text-right text-sm font-mono text-base-content/70">
+                                        {file.size}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     );
 }
