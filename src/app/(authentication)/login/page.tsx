@@ -1,37 +1,34 @@
 "use client";
-import { MouseEventHandler, useState } from "react";
 
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { auth, db, googleProvider } from "lib/firebase";
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { get, ref, set } from "firebase/database";
+import { get, ref } from "firebase/database";
 
 export default function Page() {
-    const [error, setError] = useState("");
     const router = useRouter();
-  
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      const form = e.target as HTMLFormElement;
-      const email = form.email.value;
-      const password = form.password.value;
-  
-      try {
-        const userCredentials = await signInWithEmailAndPassword(auth, email, password);
-        if (userCredentials.user) {
-            router.push('/');
+        e.preventDefault();
+        const form = e.target as HTMLFormElement;
+        const email = form.email.value;
+        const password = form.password.value;
+
+        try {
+            const userCredentials = await signInWithEmailAndPassword(auth, email, password);
+            if (userCredentials.user) {
+                router.push('/');
+            }
+        } catch (err) {
+            if (err instanceof Error) {
+            }
         }
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-        }
-      }
     };
 
     const handleGoogleLogin = async () => {
         const result = await signInWithPopup(auth, googleProvider);
-        
+
         const user = result.user;
         if (user) {
             const userRef = ref(db, 'users/' + user.uid);
@@ -40,32 +37,32 @@ export default function Page() {
             if (!snapshot.exists()) {
                 try {
                     const token = await auth?.currentUser?.getIdToken();
-                        
+
                     const formData = new FormData();
                     formData.append('full_name', user.displayName || "");
-            
+
                     if (user?.photoURL) {
                         formData.append('image', user?.photoURL);
                     }
-                    
+
                     const response = await fetch('/api/users', {
                         method: 'POST',
                         headers: {
-                        'Authorization': `Bearer ${token}`,
+                            'Authorization': `Bearer ${token}`,
                         },
                         body: formData,
                     });
-                    
+
                     const data = await response.json();
-                    
+
                     if (!response.ok) {
                         throw new Error(data.error || 'Failed to create user');
                     }
-                } catch(e) {
-        
+                } catch {
+
                 };
             }
-    
+
             router.push('/');
         }
     };
@@ -89,10 +86,16 @@ export default function Page() {
             </div>
             <div className="flex flex-col gap-4 mt-5">
                 <fieldset className="fieldset flex flex-col gap-1">
-                    <input type="email" className="input validator" name="email" placeholder="Email address" required  />
+                    <label className="floating-label">
+                        <input type="email" className="input validator" name="email" placeholder="Email address" required />
+                        <span>Email</span>
+                    </label>
                 </fieldset>
                 <fieldset className="fieldset flex flex-col gap-1">
-                    <input type="password" className="input" name="password" placeholder="Password" required />
+                    <label className="floating-label">
+                        <input type="password" className="input" name="password" placeholder="Password" required />
+                        <span>Password</span>
+                    </label>
                 </fieldset>
                 <button className="btn btn-primary">Sign In</button>
                 <div className="divider text-sm opacity-80">OR</div>
@@ -101,7 +104,7 @@ export default function Page() {
                     Login with Google
                 </button>
                 <label htmlFor="tos" className="text-sm text-center">
-                    Don't have an account?{' '}
+                    {"Don't have an account? "}
                     <a href="/register" className="link link-primary">
                         Sign up
                     </a>

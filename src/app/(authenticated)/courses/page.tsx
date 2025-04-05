@@ -39,7 +39,7 @@ export default function Page() {
             if (snapshot.exists()) {
                 const rawData = snapshot.val();
                 
-                let allCourses: CoursePreview[] = Object.entries(rawData).map(
+                const allCourses: CoursePreview[] = Object.entries(rawData).map(
                     ([id, value]) => ({
                         id,
                         ...(value as Omit<CoursePreview, "id">),
@@ -56,7 +56,7 @@ export default function Page() {
                             const imageRef = storageRef(storage, `courses/${course.id}/cover.webp`);
                             const imageUrl = await getDownloadURL(imageRef);
                             return { ...course, imageUrl };
-                        } catch (error) {
+                        } catch {
                             return course;
                         }
                     })
