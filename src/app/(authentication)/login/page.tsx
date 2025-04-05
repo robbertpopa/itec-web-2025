@@ -3,9 +3,11 @@ import { MouseEventHandler, useState } from "react";
 
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "lib/firebase";
+import { useRouter } from 'next/navigation';
 
 export default function Page() {
     const [error, setError] = useState("");
+    const router = useRouter();
   
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -14,7 +16,10 @@ export default function Page() {
       const password = form.password.value;
   
       try {
-        await signInWithEmailAndPassword(auth, email, password);
+        const userCredentials = await signInWithEmailAndPassword(auth, email, password);
+        if (userCredentials.user) {
+            router.push('/');
+        }
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);
@@ -26,8 +31,9 @@ export default function Page() {
         const result = await signInWithPopup(auth, googleProvider);
         
         const user = result.user;
-        console.log(user);
-        console.log('LOGGED IN!!!!');
+        if (user) {
+            router.push('/');
+        }
     };
 
     return (

@@ -7,12 +7,15 @@ import {
   signInWithPopup,
 } from "firebase/auth";
 import { auth, googleProvider } from "lib/firebase";
+import { useRouter } from 'next/navigation';
 
 export default function Page() {
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     const form = e.target as HTMLFormElement;
     const email = form.email.value;
     const password = form.password.value;
@@ -27,8 +30,10 @@ export default function Page() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
-      await sendEmailVerification(user);
+      if (user) {
+        await sendEmailVerification(user);
+        router.push('/');
+      }
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -40,6 +45,9 @@ export default function Page() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
+      if (user) {
+        router.push('/');
+      }
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
