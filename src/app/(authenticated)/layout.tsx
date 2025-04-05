@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-
+import { mainNavLinks } from "lib/navigation";
 import useRequireEmailVerified from "lib/hooks/useRequireEmailVerified";
 
 export default function AuthenticatedLayout({
@@ -13,7 +13,7 @@ export default function AuthenticatedLayout({
     useRequireEmailVerified();
 
     return (
-        <div className="size-full flex flex-col justify-start items-start box-border">
+        <div className="w-full flex flex-col justify-start items-start box-border">
             <nav className="navbar bg-base-100 shadow px-6">
                 <div className="navbar-start">
                     <Link href="/" className="flex items-center gap-2">
@@ -28,12 +28,13 @@ export default function AuthenticatedLayout({
 
                     <div className="hidden lg:flex">
                         <ul className="menu menu-horizontal px-1">
-                        <li><a href="/courses" className="btn btn-ghost">Home</a></li>
-                        <Link href="/courses" className="btn btn-ghost">
-                            Courses
-                        </Link>
-                        <li><a className="btn btn-ghost">Calendar</a></li>
-                        <li><a className="btn btn-ghost">Resources</a></li>
+                            {mainNavLinks.map((link, index) => (
+                                <li key={`desktop-${link.name}-${index}`}>
+                                    <Link href={link.href} className="btn btn-ghost">
+                                        {link.name}
+                                    </Link>
+                                </li>
+                            ))}
                         </ul>
                     </div>
                 
@@ -47,10 +48,13 @@ export default function AuthenticatedLayout({
                                 </svg>
                             </label>
                             <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-                                <li><a>Home</a></li>
-                                <li><a>Courses</a></li>
-                                <li><a>Calendar</a></li>
-                                <li><a>Resources</a></li>
+                                {mainNavLinks.map((link, index) => (
+                                    <li key={`mobile-${link.name}-${index}`}>
+                                        <Link href={link.href}>
+                                            {link.name}
+                                        </Link>
+                                    </li>
+                                ))}
                             </ul>
                         </div>
                     </div>
@@ -76,10 +80,10 @@ export default function AuthenticatedLayout({
                     Robert Popa
                     </div>
                 </div>
-                </nav>
-          <main>
-            {children}
-          </main>
+            </nav>
+            <main className="w-full flex flex-col px-6 py-4 bg min-h-screen">
+                {children}
+            </main>
         </div>
         
     )
