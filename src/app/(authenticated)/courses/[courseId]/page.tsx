@@ -1,6 +1,7 @@
 import { firebase } from "lib/firebaseServer"
 import Course from "lib/models/course";
 import Link from "next/link";
+import Image from "next/image";
 
 
 export default async function Page({ params }:
@@ -26,7 +27,7 @@ export default async function Page({ params }:
         <h1 className="text-2xl">{course.name}</h1>
         {course.description != null &&
             <p>{course.description}</p>}
-        {imageUrl && <img src={imageUrl} alt="cover image" className="max-w-full max-h-lg"/>}
+        {imageUrl && <Image src={imageUrl} alt="cover image" className="max-w-full max-h-lg"/>}
         <p>{`Owned by: ${owner.displayName}`}</p>
         <h2 className="text-lg">Lessons:</h2>
         {course.lessons != null ? <ul>
@@ -39,7 +40,7 @@ export default async function Page({ params }:
             })}
         </ul>
             :
-            <p>This course hasn't added any lessons yet.</p>
+            <p>{"This course hasn't added any lessons yet."}</p>
         }
     </>)
 }

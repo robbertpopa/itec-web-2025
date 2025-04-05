@@ -1,3 +1,4 @@
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 import { notFound, redirect, RedirectType } from "next/navigation";
 import { firebase } from "lib/firebaseServer";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
@@ -5,7 +6,7 @@ import Link from "next/link";
 
 interface Props {
     markdown?: string;
-    children?: BucketFile[];
+    childrenFiles?: BucketFile[];
     path: string
 }
 
@@ -52,7 +53,7 @@ export default async function Page({ params }: { params: Promise<ParamsType> }) 
             size: '0',
         } as BucketFile))
 
-        return <Component markdown={markdown} children={[...prefixFiles, ...bucketFiles]} path={fullPath} />;
+        return <Component markdown={markdown} childrenFiles={[...prefixFiles, ...bucketFiles]} path={fullPath} />;
     }
 
     let file = files.length == 1 ? files[0] : null;
@@ -84,7 +85,7 @@ export default async function Page({ params }: { params: Promise<ParamsType> }) 
 function Component(props: Props) {
     return <>
         {props.markdown && <MarkdownRenderer markdown={props.markdown} />}
-        {props.children && props.children.map(f => {
+        {props.childrenFiles && props.childrenFiles.map(f => {
             return <div key={f.name}>
                 <span><Link className="link" href={'/' + props.path + '/' + f.name}>{f.name}</Link> {f.mimeType ?? "folder"} {f.size}</span>
             </div>

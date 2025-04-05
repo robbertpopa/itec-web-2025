@@ -10,7 +10,6 @@ import CreateCourseForm from "@/components/ui/CreateCourseForm";
 import React, { createContext, useEffect, useState } from "react";
 import { get, ref } from "firebase/database";
 import { auth, db } from "lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
 
 interface UserData {
   fullName: string;
@@ -144,7 +143,7 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
                         {!avatarLoaded && (
                           <div className="w-10 h-10 bg-gray-300 rounded-full animate-pulse absolute inset-0 z-10" />
                         )}
-                        <img
+                        <Image
                           src={`${userData.profilePicture}?t=${new Date().getTime()}`}
                           alt=""
                           className="w-full h-full object-cover"

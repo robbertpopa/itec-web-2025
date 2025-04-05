@@ -7,14 +7,14 @@ import {
   signInWithPopup,
 } from "firebase/auth";
 import { auth, db, googleProvider } from "lib/firebase";
-import { ref, child, get, query, set } from "firebase/database";
+import { ref, set } from "firebase/database";
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 export default function Page() {
   const [error, setError] = useState("");
   const router = useRouter();
-  var full_name: string = "";
+  let full_name: string = "";
   
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -81,7 +81,7 @@ export default function Page() {
           if (!response.ok) {
             throw new Error(data.error || 'Failed to create user');
           }
-        } catch(e) {
+        } catch {
 
         };
 

@@ -1,12 +1,11 @@
 "use client";
 
-import { ref, get } from "firebase/database";
-import { auth, db } from "lib/firebase";
-import { useState, useRef, useContext, useEffect } from "react";
+import { auth } from "lib/firebase";
+import { useRef, useContext, useEffect } from "react";
 import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { UserContext } from "../layout";
+import Image from "next/image";
 
 function getInitials(name: string): string {
   if (!name) return "";
@@ -46,7 +45,7 @@ export default function Page() {
                 {userProfile === null ? (
                   <div className="w-40 h-40 bg-gray-300 rounded-full animate-pulse" />
                 ) : userProfile.profilePicture ? (
-                  <img
+                  <Image
                     src={`${userProfile.profilePicture}?t=${new Date().getTime()}`}
                     alt=""
                     className="w-full h-full object-cover"
