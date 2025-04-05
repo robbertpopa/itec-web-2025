@@ -66,8 +66,8 @@ export default async function Page({ params }: { params: Promise<ParamsType> }) 
     }
 
     if (file) {
-        if (file.metadata?.contentType == "text/markdown") {
-            const [markdown] = await files[0].download();
+        if (file.name.split('.').at(-1) == "md") {
+            const [markdown] = await file.download();
             return render({
                 markdown: markdown.toString("utf8")
             });
