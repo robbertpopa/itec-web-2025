@@ -1,13 +1,12 @@
-import { storage } from "lib/firebase";
-import { ref, getMetadata, getDownloadURL } from "firebase/storage"
 import { notFound, redirect, RedirectType } from "next/navigation";
-import { NextResponse } from "next/server";
 import { firebase } from "lib/firebaseServer";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
+import Link from "next/link";
 
 interface Props {
     markdown?: string;
     children?: BucketFile[];
+    path: string
 }
 
 interface BucketFile {
@@ -32,9 +31,9 @@ export default async function Page({ params }: { params: Promise<ParamsType> }) 
     const bucket = firebase().storage().bucket();
     const fullPath = `courses/${courseId}/${lessonId}${path ? '/' + path.join('/') : ''}`
 
-    const [files, ,apiResponse] = await bucket.getFiles({ prefix: fullPath + '/', delimiter: '/', autoPaginate: true })
+    const [files, , apiResponse] = await bucket.getFiles({ prefix: fullPath + '/', delimiter: '/', autoPaginate: true })
 
-    const prefixes = ((apiResponse as any).prefixes  ?? []) as any[]
+    const prefixes = ((apiResponse as any).prefixes ?? []) as any[]
 
     if (files.length + prefixes.length > 1) {
         files.shift();
@@ -49,14 +48,11 @@ export default async function Page({ params }: { params: Promise<ParamsType> }) 
         } as BucketFile))
 
         const prefixFiles = prefixes.map(p => ({
-            name: p.split('/').filter(x => x != "").at(-1),
+            name: p.split('/').filter((x: string) => x != "").at(-1),
             size: '0',
         } as BucketFile))
-        
-        return render({
-            markdown,
-            children: [...prefixFiles, ...bucketFiles],
-        });
+
+        return <Component markdown={markdown} children={[...prefixFiles, ...bucketFiles]} path={fullPath} />;
     }
 
     let file = files.length == 1 ? files[0] : null;
@@ -68,9 +64,7 @@ export default async function Page({ params }: { params: Promise<ParamsType> }) 
     if (file) {
         if (file.name.split('.').at(-1) == "md") {
             const [markdown] = await file.download();
-            return render({
-                markdown: markdown.toString("utf8")
-            });
+            return <Component markdown={markdown.toString("utf8")} path={fullPath}/>;
         }
 
         const [url] = await file.getSignedUrl(
@@ -87,12 +81,12 @@ export default async function Page({ params }: { params: Promise<ParamsType> }) 
     notFound();
 }
 
-function render(props: Props) {
+function Component(props: Props) {
     return <>
-        {props.markdown && <MarkdownRenderer markdown={props.markdown}/>}
+        {props.markdown && <MarkdownRenderer markdown={props.markdown} />}
         {props.children && props.children.map(f => {
             return <div key={f.name}>
-                <span>{f.name} {f.mimeType ?? "folder"} {f.size}</span>
+                <span><Link className="link" href={'/' + props.path + '/' + f.name}>{f.name}</Link> {f.mimeType ?? "folder"} {f.size}</span>
             </div>
         })}
     </>
