@@ -123,86 +123,98 @@ export default function Page() {
         setCurrentPage(1);
     }, [searchTerm]);
 
-    return (
-        <div className="container mx-auto px-4 py-8 flex flex-col min-h-[calc(100vh-150px)]">
-            <header className="mb-8">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                    <div className="relative flex-grow max-w-md w-full">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                            <Search className="h-5 w-5 text-neutral-400" />
-                        </div>
-                        <input 
-                            type="text" 
-                            placeholder="Search courses..." 
-                            className="pl-10 pr-4 py-3 w-full rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                </div>
-            </header>
+    return (            
+        <div className="drawer lg:drawer-open">
+            <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
+            <div className="drawer-content container mx-auto px-4 py-8 flex flex-col">
 
-            {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-                    {error}
-                </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {paginatedCourses.map((course) => (
-                    <CourseCard key={course.id} course={course} />
-                ))}
-                
-                {loading && !courseData.length && Array(4).fill(0).map((_, i) => (
-                    <div key={`skeleton-${i}`} className="flex flex-col rounded-lg border border-neutral-100 bg-white shadow-sm h-[340px]">
-                        <Skeleton className="h-48 w-full rounded-t-lg" />
-                        <div className="p-4">
-                            <Skeleton className="h-6 w-3/4 mb-2" />
-                            <Skeleton className="h-4 w-1/2 mb-3" />
-                            <Skeleton className="h-12 w-full" />
-                            <Skeleton className="h-9 w-full mt-4" />
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {filteredCourses.length === 0 && !loading && (
-                <div className="text-center py-12">
-                    <h3 className="text-xl font-medium text-neutral-700 mb-2">No courses found</h3>
-                    {searchTerm ? (
-                        <p className="text-neutral-500">
-                            No courses match your search criteria. Try a different search term.
-                        </p>
-                    ) : (
-                        <p className="text-neutral-500">
-                            There are no courses available at the moment.
-                        </p>
-                    )}
-                </div>
-            )}
-
-            <div className="mt-auto pt-10 flex justify-center">
-                {courseData.length > 0 && filteredTotalPages > 0 && (
-                    <div className="join">
-                        <button 
-                            className="join-item btn" 
-                            onClick={goToPrevPage}
-                            disabled={loading || currentPage === 1}
-                        >
-                            «
-                        </button>
-                        <button className="join-item btn">
-                            Page {currentPage} of {filteredTotalPages}
-                        </button>
-                        <button 
-                            className="join-item btn" 
-                            onClick={goToNextPage}
-                            disabled={loading || currentPage === filteredTotalPages}
-                        >
-                            »
-                        </button>
+                {error && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+                        {error}
                     </div>
                 )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {paginatedCourses.map((course) => (
+                        <CourseCard key={course.id} course={course} />
+                    ))}
+                    
+                    {loading && !courseData.length && Array(4).fill(0).map((_, i) => (
+                        <div key={`skeleton-${i}`} className="flex flex-col rounded-lg border border-neutral-100 bg-white shadow-sm h-[340px]">
+                            <Skeleton className="h-48 w-full rounded-t-lg" />
+                            <div className="p-4">
+                                <Skeleton className="h-6 w-3/4 mb-2" />
+                                <Skeleton className="h-4 w-1/2 mb-3" />
+                                <Skeleton className="h-12 w-full" />
+                                <Skeleton className="h-9 w-full mt-4" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {filteredCourses.length === 0 && !loading && (
+                    <div className="text-center py-12">
+                        <h3 className="text-xl font-medium text-neutral-700 mb-2">No courses found</h3>
+                        {searchTerm ? (
+                            <p className="text-neutral-500">
+                                No courses match your search criteria. Try a different search term.
+                            </p>
+                        ) : (
+                            <p className="text-neutral-500">
+                                There are no courses available at the moment.
+                            </p>
+                        )}
+                    </div>
+                )}
+
+                {!loading && courseData.length > 0 && (
+                    <div className="pt-6 flex justify-center">
+                        <div className="join justify-self-end">
+                            <button 
+                                className="join-item btn" 
+                                onClick={goToPrevPage}
+                                disabled={currentPage === 1}
+                            >
+                                «
+                            </button>
+                            <button className="join-item btn">
+                                Page {currentPage} of {filteredTotalPages}
+                            </button>
+                            <button 
+                                className="join-item btn" 
+                                onClick={goToNextPage}
+                                disabled={currentPage === filteredTotalPages}
+                            >
+                                »
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                <label htmlFor="my-drawer-2" className="btn btn-primary drawer-button lg:hidden mt-4">
+                    Open drawer
+                </label>
+            </div>
+            <div className="drawer-side">
+                <label htmlFor="my-drawer-2" aria-label="close sidebar" className="drawer-overlay"></label>
+                <div className="p-4 w-80 min-h-full bg-base-200">
+                    <header className="mb-8">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                            <div className="relative flex-grow max-w-md w-full">
+                                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                    <Search className="h-5 w-5 text-neutral-400" />
+                                </div>
+                                <input 
+                                    type="text" 
+                                    placeholder="Search courses..." 
+                                    className="pl-10 pr-4 py-3 w-full rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                    </header>
+                </div>
             </div>
         </div>
     );
