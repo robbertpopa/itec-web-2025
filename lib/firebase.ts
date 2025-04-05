@@ -1,8 +1,9 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
+import { GoogleAuthProvider } from "firebase/auth";
 import { getDatabase } from 'firebase/database';
 import { getStorage } from 'firebase/storage';
-import { getAnalytics } from 'firebase/analytics';
+import { isSupported, getAnalytics } from 'firebase/analytics';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_API_KEY,
@@ -20,7 +21,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+export const googleProvider = new GoogleAuthProvider();
 export const db = getDatabase(app);
 export const storage = getStorage(app);
-export const googleProvider = new GoogleAuthProvider();
-// export const analytics = getAnalytics(app);
+
+// export const analytics = await isSupported().then(
+//   (supported) => supported ? getAnalytics(app) : null
+// );
