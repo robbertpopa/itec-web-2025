@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import { auth } from 'lib/firebase';
 import { Check, Upload } from 'lucide-react';
-import Image from 'next/image'
 
 interface CreateCourseFormProps {
   onClose: () => void;
@@ -113,7 +112,7 @@ export default function CreateCourseForm({ onClose, onSuccess }: CreateCourseFor
         >
           {imagePreview ? (
             <div className="relative aspect-video max-w-full mx-auto">
-              <Image 
+              <img 
                 src={imagePreview} 
                 alt="Course preview" 
                 className="object-cover rounded-lg max-h-[200px] mx-auto"

@@ -8,8 +8,6 @@ import Image from 'next/image';
 import { get, ref } from "firebase/database";
 
 export default function Page() {
-    // TODO: Do something about this unused error
-    const [, setError] = useState("");
     const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -25,7 +23,6 @@ export default function Page() {
             }
         } catch (err) {
             if (err instanceof Error) {
-                setError(err.message);
             }
         }
     };
@@ -90,10 +87,16 @@ export default function Page() {
             </div>
             <div className="flex flex-col gap-4 mt-5">
                 <fieldset className="fieldset flex flex-col gap-1">
-                    <input type="email" className="input validator" name="email" placeholder="Email address" required />
+                    <label className="floating-label">
+                        <input type="email" className="input validator" name="email" placeholder="Email address" required />
+                        <span>Email</span>
+                    </label>
                 </fieldset>
                 <fieldset className="fieldset flex flex-col gap-1">
-                    <input type="password" className="input" name="password" placeholder="Password" required />
+                    <label className="floating-label">
+                        <input type="password" className="input" name="password" placeholder="Password" required />
+                        <span>Password</span>
+                    </label>
                 </fieldset>
                 <button className="btn btn-primary">Sign In</button>
                 <div className="divider text-sm opacity-80">OR</div>

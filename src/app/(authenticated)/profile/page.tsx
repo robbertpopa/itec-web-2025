@@ -1,11 +1,13 @@
 "use client";
 
-import { auth } from "lib/firebase";
-import { useRef, useContext, useEffect } from "react";
+import { auth, db } from "lib/firebase";
+import { useRef, useContext, useEffect, useState } from "react";
 import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { UserContext } from "../layout";
-import Image from "next/image";
+import { Check } from "lucide-react";
+import { useNotification } from "lib/context/NotificationContext";
+import { ref, update } from "firebase/database";
 
 function getInitials(name: string): string {
   if (!name) return "";
@@ -15,9 +17,11 @@ function getInitials(name: string): string {
 }
 
 export default function Page() {
+  const { showNotification } = useNotification();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const userProfile = useContext(UserContext);
+  const [fullName, setFullName] = useState("");
 
   const handleImageClick = () => {
     fileInputRef.current?.click();
@@ -28,8 +32,24 @@ export default function Page() {
     router.push("/login");
   };
 
+  const handleUpdateUserProfile = async () => {
+    const user = auth.currentUser;
+    update(ref(db, 'users/' + user?.uid), {
+      fullName
+    });
+
+    if (userProfile) {
+      userProfile.fullName = fullName;
+    }
+
+    showNotification("User profile updated succesfully!");
+    router.refresh();
+  }
+
   useEffect(() => {
-    console.log("User profile changed:", userProfile);
+    if (userProfile?.fullName) {
+      setFullName(userProfile.fullName);
+    }
   }, [userProfile]);
 
   return (
@@ -45,7 +65,7 @@ export default function Page() {
                 {userProfile === null ? (
                   <div className="w-40 h-40 bg-gray-300 rounded-full animate-pulse" />
                 ) : userProfile.profilePicture ? (
-                  <Image
+                  <img
                     src={`${userProfile.profilePicture}?t=${new Date().getTime()}`}
                     alt=""
                     className="w-full h-full object-cover"
@@ -84,19 +104,13 @@ export default function Page() {
                   }
                 );
                 if (response.ok) {
+                  showNotification("Profile picture updated succesfully");
                   router.refresh();
                 }
               }
             }}
           />
 
-          <div className="flex font-semibold text-lg">
-            {userProfile === null ? (
-              <div className="h-6 w-32 bg-gray-300 rounded animate-pulse" />
-            ) : (
-              userProfile.fullName
-            )}
-          </div>
           <button onClick={handleLogout} className="btn btn-soft btn-error">
             Logout
           </button>
@@ -105,10 +119,20 @@ export default function Page() {
         <div className="divider divider-horizontal"></div>
 
         <div className="card-body">
-          <h2 className="card-title">New album is released!</h2>
-          <p>Click the button to listen on Spotiwhy app.</p>
-          <div className="card-actions justify-end">
-            <button className="btn btn-primary">Listen</button>
+          <div className="flex flex-row gap-2">
+            <label className="floating-label">
+                <input
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Full name"
+                className="input input-md"
+                />
+              <span>Full name</span>
+            </label>
+            <button onClick={handleUpdateUserProfile} className="btn" disabled={!fullName}>
+              <Check></Check>
+            </button>
           </div>
         </div>
       </div>
