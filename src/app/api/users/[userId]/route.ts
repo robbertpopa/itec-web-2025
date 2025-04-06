@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuth } from 'firebase-admin/auth';
 import { getDatabase } from 'firebase-admin/database';
 import { firebase } from 'lib/firebaseServer';
 
 const firebaseApp = firebase();
-const auth = getAuth(firebaseApp);
 const db = getDatabase(firebaseApp);
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   const authHeader = req.headers.get("authorization");
   if (!authHeader?.startsWith("Bearer ")) {

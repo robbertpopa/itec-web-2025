@@ -1,5 +1,4 @@
 import CourseDetails from "@/components/ui/CourseDetails";
-import CourseDiscussion from "@/components/ui/CourseDiscussion";
 import { firebase } from "lib/firebaseServer"
 import Course from "lib/models/course";
 

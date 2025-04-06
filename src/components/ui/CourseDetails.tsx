@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import CourseDiscussion from "./CourseDiscussion";
 
 export default function CourseDetails({
@@ -94,7 +93,7 @@ export default function CourseDetails({
               No lessons yet
             </h3>
             <p className="text-base-content/60">
-              This course hasn't added any lessons yet. Check back soon!
+              {"This course hasn't added any lessons yet. Check back soon!"}
             </p>
           </div>
         )}

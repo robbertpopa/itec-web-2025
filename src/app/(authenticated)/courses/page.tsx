@@ -6,7 +6,6 @@ import { useState, useEffect } from "react";
 import CourseCard from "@/components/ui/CourseCard";
 import CoursePreview from "lib/models/coursePreview";
 import Skeleton from "@/components/ui/Skeleton";
-import { Search } from "lucide-react";
 
 export default function Page() {
     const [courseData, setCourseData] = useState<CoursePreview[]>([]);
