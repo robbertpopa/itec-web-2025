@@ -35,7 +35,6 @@ export default function CourseDetails({
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingEnrollment, setIsCheckingEnrollment] = useState(true);
 
-  // Check if the user is already enrolled in this course
   useEffect(() => {
     const checkEnrollmentStatus = async () => {
       try {
@@ -54,7 +53,6 @@ export default function CourseDetails({
 
         if (response.ok) {
           const data = await response.json();
-          // Check if this course is in the user's enrollments
           const isUserEnrolled = data.enrollments && 
             data.enrollments[course.id] !== undefined;
           
