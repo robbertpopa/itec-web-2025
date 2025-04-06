@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import CourseDiscussion from "./CourseDiscussion";
-import { Calendar, Heart, Share2, Star } from "lucide-react";
-import Image from "next/image";
+import { Calendar, Share2, Star } from "lucide-react";
 import { useNotification } from "lib/context/NotificationContext";
 
 export default function CourseDetails({
@@ -21,7 +20,7 @@ export default function CourseDetails({
     try {
       await navigator.clipboard.writeText(window.location.href);
       showNotification("Link copied to clipboard", "success");
-    } catch (error) {
+    } catch {
       showNotification("Failed to copy link", "error");
     }
   };
