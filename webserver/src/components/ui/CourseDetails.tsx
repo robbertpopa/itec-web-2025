@@ -31,13 +31,10 @@ export default function CourseDetails({
       <div className="card flex flex-col rounded-lg shadow-lg overflow-hidden w-2/3">
         <div className="relative overflow-hidden">
           {imageUrl ? (
-            <Image
+            <img
               src={imageUrl}
               alt={`Cover image for ${course.name}`}
-              fill
-              sizes="(min-width: 1024px) 33vw, (min-width: 768px) 40vw, 100vw"
-              className="object-cover transition-transform duration-300 hover:scale-105"
-              priority
+              className="w-full rounded-t-lg object-cover max-h-60"
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-base-200 text-base-content/50">
