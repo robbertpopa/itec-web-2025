@@ -1,6 +1,5 @@
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Course from "lib/models/coursePreview";
 import { useState, useEffect } from "react";
 import { auth } from "lib/firebase";
 
@@ -18,39 +17,98 @@ function getInitials(name: string): string {
     return parts[0].charAt(0).toUpperCase() + parts[parts.length - 1].charAt(0).toUpperCase();
 }
 
-export default function CourseCard({ course }: { course: Course }) {
+interface CourseCardProps {
+  id?: string;
+  title?: string;
+  description?: string;
+  thumbnail?: string;
+  authorName?: string;
+  course?: any;
+}
+
+export default function CourseCard({ 
+  id,
+  title,
+  description,
+  thumbnail,
+  authorName,
+  course
+}: CourseCardProps) {
   const router = useRouter();
-  const [userData, setUserData] = useState<UserData>({ fullName: "", profilePicture: "" });
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const courseId = course?.id || id || '';
+  const courseTitle = course?.name || title || '';
+  const courseDescription = course?.description || description || '';
+  const courseThumbnail = course?.imageUrl || thumbnail || '';
+  const courseOwnerId = course?.ownerId;
+  const courseOwnerName = course?.ownerName || '';
+  const courseAuthorName = course?.authorName || authorName || courseOwnerName || '';
+  const ownerProfilePicture = course?.ownerProfilePicture || '';
 
   useEffect(() => {
-    const getUserData = async () => {
-      const token = await auth.currentUser?.getIdToken();
-      const response = await fetch("/api/users/" + course.ownerId, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setUserData(data.user);
-      }
-    };
+    if (!ownerProfilePicture && courseOwnerId) {
+      const fetchUserData = async () => {
+        setLoading(true);
+        try {
+          const token = await auth.currentUser?.getIdToken();
+          const response = await fetch(`/api/users?userId=${courseOwnerId}`, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (response.ok) {
+            const data = await response.json();
+            console.log('API Response data:', data);
+            
+            if (data && data.success && data.user) {
+              console.log('User data found:', data.user);
+              setUserData({
+                fullName: data.user.fullName || "",
+                profilePicture: data.user.profilePicture || ""
+              });
+            } else {
+              console.warn('User data not found in expected structure:', data);
+            }
+          } else {
+            console.error('Failed to fetch user data:', response.status, response.statusText);
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    getUserData();
-  }, [course.ownerId]);
+      fetchUserData();
+    }
+  }, [courseOwnerId, ownerProfilePicture]);
+
+  useEffect(() => {
+    console.log('Current userData state:', userData);
+  }, [userData]);
 
   const handleViewMaterials = () => {
-    router.push(`/courses/${course.id}`);
+    router.push(`/courses/${courseId}`);
   };
+
+  const displayName = courseAuthorName || userData?.fullName || "Unknown";
+  console.log('Display name values:', { 
+    courseAuthorName, 
+    userDataFullName: userData?.fullName, 
+    finalDisplayName: displayName 
+  });
+  const displayProfilePicture = ownerProfilePicture || userData?.profilePicture || "";
 
   return (
     <div className="card bg-base-100 shadow-sm hover:shadow-md transition-shadow">
       <figure className="aspect-video relative overflow-hidden rounded-t-lg">
-        {course.imageUrl ? (
+        {courseThumbnail ? (
           <Image
-            src={course.imageUrl}
-            alt={course.name}
+            src={courseThumbnail}
+            alt={courseTitle}
             fill
             sizes="(min-width: 1024px) 20rem, (min-width: 768px) 16rem, 100vw"
             className="object-cover transition-transform duration-300 hover:scale-105"
@@ -63,34 +121,34 @@ export default function CourseCard({ course }: { course: Course }) {
         )}
       </figure>
       <div className="card-body p-4">
-        <h3 className="card-title text-lg truncate" title={course.name}>
-          {course.name}
+        <h3 className="card-title text-lg truncate" title={courseTitle}>
+          {courseTitle}
         </h3>
         <p className="line-clamp-2 text-sm flex-grow opacity-70">
-          {course.description ?? "No description available."}
+          {courseDescription || "No description available."}
         </p>
         <div className="flex flex-row items-center gap-2">
             <div className="avatar">
                 <div className="w-10 h-10 rounded-full overflow-hidden">
-                {userData === null ? (
+                {loading ? (
                     <div className="w-10 h-10 bg-gray-300 rounded-full animate-pulse" />
-                ) : userData.profilePicture ? (
+                ) : displayProfilePicture ? (
                     <img
-                    src={`${userData.profilePicture}?t=${new Date().getTime()}`}
+                    src={`${displayProfilePicture}?t=${new Date().getTime()}`}
                     alt=""
                     className="w-full h-full object-cover"
                     />
                 ) : (
-                    <div className="bg-neutral-focus text-neutral-content rounded-full w-40 h-40 flex items-center justify-center">
-                    <span className="text-5xl">{getInitials(userData.fullName)}</span>
+                    <div className="bg-neutral-focus text-neutral-content rounded-full w-10 h-10 flex items-center justify-center">
+                    <span className="text-xl">{getInitials(displayName)}</span>
                     </div>
                 )}
                 </div>
             </div>
-            <div className="text-xs flex flex-row gap-1">
-                Hosted by
-                <div className="font-semibold">
-                    {userData?.fullName || "Unknown"}
+            <div className="text-xs flex flex-col">
+                <span className="text-gray-500">Hosted by</span>
+                <div className="font-semibold text-sm">
+                    {displayName}
                 </div>
             </div>
         </div>

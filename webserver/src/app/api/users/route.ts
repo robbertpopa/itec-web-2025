@@ -69,3 +69,72 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error instanceof Error ? error.message : 'Internal server error' }, { status: 500 });
   }
 }
+
+export async function GET(req: NextRequest) {
+  const authHeader = req.headers.get('authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return NextResponse.json({ error: 'Unauthorized: Missing or invalid token' }, { status: 401 });
+  }
+  
+  const token = authHeader.split('Bearer ')[1];
+  
+  try {
+    const decodedToken = await auth.verifyIdToken(token);
+    const requesterId = decodedToken.uid;
+    
+    const url = new URL(req.url);
+    const queryUserId = url.searchParams.get('userId');
+    
+    if (queryUserId) {
+      const userRef = db.ref(`/users/${queryUserId}`);
+      const snapshot = await userRef.get();
+      
+      if (!snapshot.exists()) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+      
+      const userData = snapshot.val();
+      
+      return NextResponse.json({ 
+        success: true, 
+        user: {
+          id: queryUserId,
+          fullName: userData.fullName || '',
+          profilePicture: userData.profilePicture || '',
+        }
+      });
+    }
+    
+    const userRef = db.ref(`/users/${requesterId}`);
+    const snapshot = await userRef.get();
+    
+    if (!snapshot.exists()) {
+      return NextResponse.json({ 
+        success: true, 
+        user: {
+          id: requesterId,
+          fullName: '',
+          profilePicture: '',
+        }
+      });
+    }
+    
+    const userData = snapshot.val();
+    
+    return NextResponse.json({ 
+      success: true, 
+      user: {
+        id: requesterId,
+        fullName: userData.fullName || '',
+        profilePicture: userData.profilePicture || '',
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error in user GET API:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}

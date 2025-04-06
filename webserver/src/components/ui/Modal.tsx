@@ -48,7 +48,7 @@ export default function Modal({ isOpen, onClose, title, children, className }: M
   
   return createPortal(
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-base-300/40 backdrop-blur-sm p-4"
       ref={overlayRef}
       onClick={handleOverlayClick}
       aria-modal="true"
@@ -56,23 +56,23 @@ export default function Modal({ isOpen, onClose, title, children, className }: M
     >
       <div 
         className={cn(
-          "bg-white rounded-lg shadow-xl max-h-[90vh] w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95",
+          "bg-base-100 rounded-lg shadow-xl max-h-[90vh] w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 border border-base-300",
           className
         )}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center p-4 !pb-0">
-          <h2 className="text-lg font-semibold">{title}</h2>
+          <h2 className="text-lg font-semibold text-base-content">{title}</h2>
           <button 
             onClick={onClose}
-            className="rounded-full p-1 hover:bg-neutral-100 transition-colors"
+            className="rounded-full p-1 hover:bg-base-200 transition-colors"
             aria-label="Close modal"
           >
-            <X size={20} />
+            <X size={20} className="text-base-content" />
           </button>
         </div>
         <div className="divider"></div>
-        <div className="p-4 overflow-y-auto max-h-[calc(90vh-4rem)]">
+        <div className="p-4 overflow-y-auto max-h-[calc(90vh-4rem)] text-base-content">
           {children}
         </div>
       </div>

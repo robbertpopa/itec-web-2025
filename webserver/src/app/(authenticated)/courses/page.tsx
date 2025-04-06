@@ -52,10 +52,38 @@ export default function Page() {
                 const coursesWithImages = await Promise.all(
                     paginatedCourses.map(async (course) => {
                         try {
-                            const imageRef = storageRef(storage, `courses/${course.id}/cover.webp`);
-                            const imageUrl = await getDownloadURL(imageRef);
-                            return { ...course, imageUrl };
-                        } catch {
+                            // Fetch the course image
+                            let imageUrl;
+                            try {
+                                const imageRef = storageRef(storage, `courses/${course.id}/cover.webp`);
+                                imageUrl = await getDownloadURL(imageRef);
+                            } catch {
+                                imageUrl = undefined;
+                            }
+
+                            // Fetch the owner information
+                            let ownerName = "Unknown";
+                            let ownerProfilePicture = "";
+                            try {
+                                const ownerRef = child(dbReference, `/users/${course.ownerId}`);
+                                const ownerSnapshot = await get(ownerRef);
+                                if (ownerSnapshot.exists()) {
+                                    const ownerData = ownerSnapshot.val();
+                                    ownerName = ownerData.fullName || "Unknown";
+                                    ownerProfilePicture = ownerData.profilePicture || "";
+                                }
+                            } catch (error) {
+                                console.error("Error fetching owner data:", error);
+                            }
+
+                            return { 
+                                ...course, 
+                                imageUrl,
+                                authorName: ownerName,
+                                ownerProfilePicture
+                            };
+                        } catch (error) {
+                            console.error("Error processing course:", error);
                             return course;
                         }
                     })

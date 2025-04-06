@@ -6,17 +6,13 @@ export default function UserComment({userData, comment, metadata}: {
     comment: string,
     metadata: {date: string, isOwner: boolean}
 }) {
-    // Format the date as "time ago" with error handling
     let timeAgo = '';
     try {
-        // First try parsing with parseISO which is safer for ISO strings
         const parsedDate = parseISO(metadata.date);
         
-        // Check if the parsed date is valid
         if (isValid(parsedDate)) {
             timeAgo = formatDistanceToNow(parsedDate, { addSuffix: true });
         } else {
-            // Fallback to direct Date constructor
             const commentDate = new Date(metadata.date);
             if (isValid(commentDate)) {
                 timeAgo = formatDistanceToNow(commentDate, { addSuffix: true });
