@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     if (file?.buffer) {
       imageUrl = await uploadProfilePicture(file.buffer, userId);
     }
-    await db.ref(`/users/${userId}/updateProfile`).set({
+    await db.ref(`/users/${userId}`).set({
       fullName: fields.fullName,
       profilePicture: imageUrl,
       createdAt: new Date().toISOString(),
