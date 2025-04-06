@@ -1,3 +1,4 @@
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -92,6 +93,9 @@ export default function Page() {
                     const imageRef = storageRef(storage, `courses/${course.id}/cover.webp`);
                     imageUrl = await getDownloadURL(imageRef);
                   } catch (err) {
+                    if (err instanceof Error) {
+                      showNotification(err.message, "error");
+                    }
                     imageUrl = undefined;
                   }
 
@@ -153,6 +157,9 @@ export default function Page() {
                     const imageRef = storageRef(storage, `courses/${courseId}/cover.webp`);
                     imageUrl = await getDownloadURL(imageRef);
                   } catch (err) {
+                    if (err instanceof Error) {
+                      showNotification(err.message, "error");
+                    }
                     imageUrl = undefined;
                   }
                   
@@ -265,7 +272,7 @@ export default function Page() {
           isMarked 
             ? `Marked ${date.toLocaleDateString()} for learning` 
             : `Unmarked ${date.toLocaleDateString()}`, 
-          isMarked ? "success" : "info"
+          "success"
         );
       } else {
         throw new Error('Failed to update learning schedule');

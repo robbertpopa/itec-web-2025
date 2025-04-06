@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuth } from 'firebase-admin/auth';
-import { getDatabase } from 'firebase-admin/database';
 import { firebase } from 'lib/firebaseServer';
+import { getDatabase } from 'firebase-admin/database';
 
 const firebaseApp = firebase();
 const auth = getAuth(firebaseApp);
 const db = getDatabase(firebaseApp);
 
-export async function POST(req: NextRequest, { params }: { params: { userId: string } }) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ userId: string }> }
+) {
+  const { userId } = await params; // Await params
   const authHeader = req.headers.get('authorization');
   if (!authHeader?.startsWith('Bearer ')) {
     return NextResponse.json({ error: 'Unauthorized: Missing or invalid token' }, { status: 401 });
@@ -17,18 +21,19 @@ export async function POST(req: NextRequest, { params }: { params: { userId: str
 
   try {
     const decodedToken = await auth.verifyIdToken(token);
-    const userId = decodedToken.uid;
+    const requestUserId = decodedToken.uid;
 
-    if (userId !== params.userId) {
-      return NextResponse.json({ error: 'Unauthorized: Cannot update another user\'s programmed lessons' }, { status: 403 });
+    if (requestUserId !== userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized: Cannot update another user\'s programmed lessons' },
+        { status: 403 }
+      );
     }
 
     const { date, isMarked } = await req.json();
 
     if (!date) {
-      return NextResponse.json({ 
-        error: 'Date is required' 
-      }, { status: 400 });
+      return NextResponse.json({ error: 'Date is required' }, { status: 400 });
     }
 
     const programmedLessonsRef = db.ref(`/users/${userId}/programmedLessons`);
@@ -44,11 +49,14 @@ export async function POST(req: NextRequest, { params }: { params: { userId: str
       await programmedLessonsRef.child(dateString.replace(/-/g, "")).remove();
     }
 
-    return NextResponse.json({
-      success: true,
-      message: isMarked ? 'Lesson day marked successfully' : 'Lesson day unmarked successfully',
-      date: dateString
-    }, { status: 200 });
+    return NextResponse.json(
+      {
+        success: true,
+        message: isMarked ? 'Lesson day marked successfully' : 'Lesson day unmarked successfully',
+        date: dateString
+      },
+      { status: 200 }
+    );
     
   } catch (error) {
     console.error('Error updating programmed lessons:', error);
@@ -59,7 +67,11 @@ export async function POST(req: NextRequest, { params }: { params: { userId: str
   }
 }
 
-export async function GET(req: NextRequest, { params }: { params: { userId: string } }) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ userId: string }> }
+) {
+  const { userId } = await params;
   const authHeader = req.headers.get('authorization');
   if (!authHeader?.startsWith('Bearer ')) {
     return NextResponse.json({ error: 'Unauthorized: Missing or invalid token' }, { status: 401 });
@@ -71,18 +83,15 @@ export async function GET(req: NextRequest, { params }: { params: { userId: stri
     const decodedToken = await auth.verifyIdToken(token);
     const requestUserId = decodedToken.uid;
 
-    if (requestUserId !== params.userId) {
+    if (requestUserId !== userId) {
       return NextResponse.json({ error: 'Unauthorized: Cannot access another user\'s programmed lessons' }, { status: 403 });
     }
 
-    const programmedLessonsRef = db.ref(`/users/${params.userId}/programmedLessons`);
+    const programmedLessonsRef = db.ref(`/users/${userId}/programmedLessons`);
     const snapshot = await programmedLessonsRef.get();
     
     if (!snapshot.exists()) {
-      return NextResponse.json({ 
-        success: true, 
-        programmedLessons: [] 
-      });
+      return NextResponse.json({ success: true, programmedLessons: [] });
     }
     
     const programmedLessons = snapshot.val();

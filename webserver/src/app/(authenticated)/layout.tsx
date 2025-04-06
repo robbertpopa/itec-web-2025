@@ -30,11 +30,9 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
   useRequireEmailVerified();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [avatarLoaded, setAvatarLoaded] = useState<boolean>(false);
   const router = useRouter();
 
   useEffect(() => {
-    setAvatarLoaded(false);
   }, [userData?.profilePicture]);
 
   useEffect(() => {
@@ -146,7 +144,6 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
                           src={`${userData.profilePicture}?t=${new Date().getTime()}`}
                           alt="Profile picture"
                           className="w-full h-full object-cover"
-                          onLoad={() => setAvatarLoaded(true)}
                         />
                       </>
                     ) : (

@@ -212,8 +212,10 @@ export function Calendar({ events, onEventClick, onMarkDay, markedDays = [] }: C
                           className="bg-primary/20 text-primary text-xs mb-1 truncate rounded px-1"
                           onClick={(e) => {
                             e.stopPropagation();
-                            onEventClick && onEventClick(event);
-                          }}
+                            if (onEventClick) {
+                              onEventClick(event);
+                            }
+                          }}                          
                         >
                           {event.title.substring(0, 8)}
                           {event.title.length > 8 && '...'}

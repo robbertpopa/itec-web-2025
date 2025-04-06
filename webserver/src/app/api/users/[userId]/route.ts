@@ -39,7 +39,6 @@ async function parseFormData(req: NextRequest) {
   return { file: buffer ? { buffer, originalName: imageFile!.name, mime: imageFile!.type } : null };
 }
 
-
 async function uploadProfilePicture(buffer: Buffer, userId: string): Promise<string> {
   const bucket = storage.bucket();
   const imagePath = `users/${userId}/profile_picture.webp`;

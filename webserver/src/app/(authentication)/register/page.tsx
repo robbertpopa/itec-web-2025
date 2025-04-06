@@ -223,7 +223,7 @@ export default function Page() {
                         respective owners. Unauthorized use is prohibited.
                       </li>
                       <li>
-                        <strong>Limitation of Liability:</strong> OurApp is provided "as is"
+                        <strong>Limitation of Liability:</strong> OurApp is provided as is
                         and without warranties of any kind. We are not liable for any
                         indirect, incidental, or consequential damages arising from your
                         use of the service.

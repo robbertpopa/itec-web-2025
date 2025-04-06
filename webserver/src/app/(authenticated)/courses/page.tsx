@@ -52,7 +52,6 @@ export default function Page() {
                 const coursesWithImages = await Promise.all(
                     paginatedCourses.map(async (course) => {
                         try {
-                            // Fetch the course image
                             let imageUrl;
                             try {
                                 const imageRef = storageRef(storage, `courses/${course.id}/cover.webp`);
@@ -61,7 +60,6 @@ export default function Page() {
                                 imageUrl = undefined;
                             }
 
-                            // Fetch the owner information
                             let ownerName = "Unknown";
                             let ownerProfilePicture = "";
                             try {
