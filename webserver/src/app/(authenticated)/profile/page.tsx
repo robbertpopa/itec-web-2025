@@ -94,7 +94,7 @@ export default function Page() {
                 const formData = new FormData();
                 formData.append("image", file);
                 const response = await fetch(
-                  "/api/users/" + auth?.currentUser?.uid + "/updateProfile",
+                  "/api/users/" + auth?.currentUser?.uid,
                   {
                     method: "POST",
                     headers: {
