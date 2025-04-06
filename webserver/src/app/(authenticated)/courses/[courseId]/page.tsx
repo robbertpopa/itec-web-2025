@@ -13,6 +13,17 @@ export default async function Page({ params }:
     const auth = firebase().auth();
     const owner = await auth.getUser(course.ownerId);
 
+    const getOwnerDisplayName = async (ownerId: string) => {
+        const userRef = db.ref(`users/${ownerId}`);
+        const userSnapshot = await userRef.get();
+        if (userSnapshot.exists()) {
+            const userData = userSnapshot.val();
+            return userData.fullName || owner.displayName;
+        } else {
+            return owner.displayName;
+        }
+    }
+
     const bucket = firebase().storage().bucket();
     const image = bucket.file(`courses/${courseId}/cover.webp`);
     const [hasImage] = await image.exists();
@@ -30,7 +41,7 @@ export default async function Page({ params }:
                 lessons: course.lessons,
             }} 
             owner={{
-                displayName: owner.displayName,
+                displayName: await getOwnerDisplayName(course.ownerId),
                 profilePicture: owner.photoURL
             }} 
             imageUrl={imageUrl} 

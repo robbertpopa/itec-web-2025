@@ -98,7 +98,6 @@ export default function CourseDiscussion({ id }: { id: string }) {
         try {
             const token = await user.getIdToken();
             
-            // Use the server API endpoint instead of direct Firebase access
             const response = await fetch('/api/discussions', {
                 method: 'POST',
                 headers: {
@@ -117,7 +116,6 @@ export default function CourseDiscussion({ id }: { id: string }) {
                 throw new Error(data.error || 'Failed to post comment');
             }
             
-            // Add the new comment to the state with the data returned from the server
             const newCommentObj = data.comment;
             
             setComments(prevComments => [newCommentObj, ...prevComments]);
@@ -131,7 +129,7 @@ export default function CourseDiscussion({ id }: { id: string }) {
 
     return (
         <div className="mt-4 w-full">
-            <h2 className="text-lg font-semibold mb-6">Discussion</h2>
+            <h2 className="text-lg font-semibold mb-4 pb-2 border-b">Discussion</h2>
             
             {loading ? (
                 <div className="flex justify-center my-8">
