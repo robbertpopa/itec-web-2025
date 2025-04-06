@@ -59,7 +59,7 @@ export default function CourseMaterialTable({ fileData, path }: { markdown?: str
             <div className="text-center py-12 bg-base-200/30 rounded-lg border border-base-300">
                 <h3 className="text-lg font-medium text-base-content/70 mb-2">No materials available</h3>
                 <p className="text-base-content/60">
-                    This section doesn't have any downloadable files yet.
+                    {"This section doesn't have any downloadable files yet."}
                 </p>
             </div>
         );

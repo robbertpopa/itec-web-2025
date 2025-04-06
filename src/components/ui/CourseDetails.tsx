@@ -32,7 +32,7 @@ export default function CourseDetails({ course, owner, imageUrl }: {
                     <h1 className="text-3xl font-bold mb-2">{course.name}</h1>
                     <div className="flex items-center mb-4 text-sm">
                         <span className="bg-primary/10 text-primary px-3 py-1 rounded-full">
-                            Created by: {owner.displayName || 'Unknown'}
+                            Created by: {owner.displayName || ""}
                         </span>
                     </div>
                     
@@ -71,7 +71,7 @@ export default function CourseDetails({ course, owner, imageUrl }: {
                     <div className="text-center py-12 bg-base-200/30 rounded-lg border border-base-300">
                         <h3 className="text-lg font-medium text-base-content/70 mb-2">No lessons yet</h3>
                         <p className="text-base-content/60">
-                            This course hasn't added any lessons yet. Check back soon!
+                            {"This course hasn't added any lessons yet. Check back soon!"}
                         </p>
                     </div>
                 )}

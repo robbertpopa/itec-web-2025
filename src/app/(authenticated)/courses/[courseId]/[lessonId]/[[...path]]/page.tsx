@@ -2,7 +2,6 @@
 import { notFound, redirect, RedirectType } from "next/navigation";
 import { firebase } from "lib/firebaseServer";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
-import Link from "next/link";
 import CourseMaterialTable, { BucketFile } from "@/components/ui/CourseMaterialTable";
 
 interface Props {
