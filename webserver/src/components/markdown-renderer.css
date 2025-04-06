@@ -15,14 +15,14 @@
     /* dark */
     color-scheme: dark;
     --focus-outlineColor: #1f6feb;
-    --fgColor-default: #f0f6fc;
+    --fgColor-default: inherit;
     --fgColor-muted: #9198a1;
     --fgColor-accent: #4493f8;
     --fgColor-success: #3fb950;
     --fgColor-attention: #d29922;
     --fgColor-danger: #f85149;
     --fgColor-done: #ab7df8;
-    --bgColor-default: #0d1117;
+    --bgColor-default: inherit;
     --bgColor-muted: #151b23;
     --bgColor-neutral-muted: #656c7633;
     --bgColor-attention-muted: #bb800926;

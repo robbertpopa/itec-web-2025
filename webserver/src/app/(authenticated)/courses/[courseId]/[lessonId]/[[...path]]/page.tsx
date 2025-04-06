@@ -78,6 +78,6 @@ export default async function Page({ params }: { params: Promise<ParamsType> }) 
 function Component(props: Props) {
     return <>
         {props.markdown && <MarkdownRenderer markdown={props.markdown} />}
-        <CourseMaterialTable fileData={props.childrenFiles} path={props.path} />
+        {props.childrenFiles && <CourseMaterialTable fileData={props.childrenFiles} path={props.path} />}
     </>
 }
