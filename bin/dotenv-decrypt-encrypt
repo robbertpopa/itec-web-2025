@@ -28,8 +28,8 @@ fi
 
 if [[ "$encrypt" -eq "1" ]]; then
     openssl aes-256-cbc -a -salt -pbkdf2 \
-        -in ../.env.local \
-        -out ../.env.local.enc \
+        -in ../.env \
+        -out ../.env.enc \
         -pass "pass:$password"
 
     openssl aes-256-cbc -a -salt -pbkdf2 \
@@ -39,8 +39,8 @@ if [[ "$encrypt" -eq "1" ]]; then
     
 else
     openssl aes-256-cbc -d -a -salt -pbkdf2 \
-        -in ../.env.local.enc \
-        -out ../.env.local \
+        -in ../.env.enc \
+        -out ../.env \
         -pass "pass:$password"
 
     openssl aes-256-cbc -d -a -salt -pbkdf2 \
