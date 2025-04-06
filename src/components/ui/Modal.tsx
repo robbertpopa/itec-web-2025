@@ -61,7 +61,7 @@ export default function Modal({ isOpen, onClose, title, children, className }: M
         )}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center p-4 border-b">
+        <div className="flex justify-between items-center p-4 !pb-0">
           <h2 className="text-lg font-semibold">{title}</h2>
           <button 
             onClick={onClose}
@@ -71,6 +71,7 @@ export default function Modal({ isOpen, onClose, title, children, className }: M
             <X size={20} />
           </button>
         </div>
+        <div className="divider"></div>
         <div className="p-4 overflow-y-auto max-h-[calc(90vh-4rem)]">
           {children}
         </div>
