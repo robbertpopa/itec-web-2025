@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import UserComment from "./UserComment";
 import { db, auth } from "lib/firebase";
-import { ref, get, push, serverTimestamp } from "firebase/database";
+import { ref, get } from "firebase/database";
 import { useNotification } from "lib/context/NotificationContext";
 
 type Comment = {
@@ -96,22 +96,29 @@ export default function CourseDiscussion({ id }: { id: string }) {
         if (!newComment.trim() || !user) return;
 
         try {
-            const commentsRef = ref(db, `discussions/${id}`);
-            const newCommentRef = await push(commentsRef, {
-                userId: user.uid,
-                message: newComment,
-                createdAt: new Date().toISOString(),
-                timestamp: serverTimestamp(),
+            const token = await user.getIdToken();
+            
+            // Use the server API endpoint instead of direct Firebase access
+            const response = await fetch('/api/discussions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    courseId: id,
+                    message: newComment
+                })
             });
             
-            const newCommentObj: Comment = {
-                id: newCommentRef.key || '',
-                userName: user.displayName || '',
-                profilePicture: user.photoURL || '',
-                userId: user.uid,
-                message: newComment,
-                createdAt: new Date().toISOString(),
-            };
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to post comment');
+            }
+            
+            // Add the new comment to the state with the data returned from the server
+            const newCommentObj = data.comment;
             
             setComments(prevComments => [newCommentObj, ...prevComments]);
             setNewComment("");
