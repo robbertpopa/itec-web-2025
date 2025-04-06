@@ -3,7 +3,6 @@
 import Link from "next/link";
 import CourseDiscussion from "./CourseDiscussion";
 import { Calendar, Heart, Share2 } from "lucide-react";
-import Image from "next/image";
 import { useNotification } from "lib/context/NotificationContext";
 import { useState, useEffect } from "react";
 import { auth } from "lib/firebase";
