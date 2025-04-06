@@ -63,10 +63,8 @@ export default function CourseCard({
           });
           if (response.ok) {
             const data = await response.json();
-            console.log('API Response data:', data);
             
             if (data && data.success && data.user) {
-              console.log('User data found:', data.user);
               setUserData({
                 fullName: data.user.fullName || "",
                 profilePicture: data.user.profilePicture || ""
@@ -89,7 +87,6 @@ export default function CourseCard({
   }, [courseOwnerId, ownerProfilePicture]);
 
   useEffect(() => {
-    console.log('Current userData state:', userData);
   }, [userData]);
 
   const handleViewMaterials = () => {
@@ -97,11 +94,6 @@ export default function CourseCard({
   };
 
   const displayName = courseAuthorName || userData?.fullName || "Unknown";
-  console.log('Display name values:', { 
-    courseAuthorName, 
-    userDataFullName: userData?.fullName, 
-    finalDisplayName: displayName 
-  });
   const displayProfilePicture = ownerProfilePicture || userData?.profilePicture || "";
 
   return (

@@ -183,7 +183,6 @@ export default function CourseDetails({
   return (
     <>
       <div className="p-12 container mx-auto flex flex-row gap-8">
-        {/* Left Section */}
         <div className="card flex flex-col rounded-lg shadow-lg overflow-hidden w-2/3">
           <div className="relative overflow-hidden">
             {imageUrl ? (
@@ -293,7 +292,6 @@ export default function CourseDetails({
           </div>
         </div>
   
-        {/* Right Section */}
         <div className="w-1/3 h-fit gap-8 flex flex-col">
           <div className="card flex flex-col rounded-lg shadow-md w-full p-6 h-fit gap-6">
             <div className="font-semibold text-lg">Registration</div>
@@ -379,7 +377,6 @@ export default function CourseDetails({
         </div>
       </div>
   
-      {/* Modal */}
       <Modal
         isOpen={isAddLessonModalOpen}
         onClose={() => setIsAddLessonModalOpen(false)}

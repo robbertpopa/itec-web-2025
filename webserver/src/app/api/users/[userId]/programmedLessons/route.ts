@@ -36,24 +36,31 @@ export async function POST(
       return NextResponse.json({ error: 'Date is required' }, { status: 400 });
     }
 
+    const dateObj = new Date(date);
+    const dateISOString = dateObj.toISOString();
+    
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0'); 
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const datePath = `${year}${month}${day}`;
+    
     const programmedLessonsRef = db.ref(`/users/${userId}/programmedLessons`);
-    const dateString = new Date(date).toISOString().split('T')[0];
 
     if (isMarked) {
-      await programmedLessonsRef.child(dateString.replace(/-/g, "")).set({
-        date: dateString,
+      await programmedLessonsRef.child(datePath).set({
+        date: dateISOString,
         createdAt: new Date().toISOString(),
         timestamp: { '.sv': 'timestamp' }
       });
     } else {
-      await programmedLessonsRef.child(dateString.replace(/-/g, "")).remove();
+      await programmedLessonsRef.child(datePath).remove();
     }
 
     return NextResponse.json(
       {
         success: true,
         message: isMarked ? 'Lesson day marked successfully' : 'Lesson day unmarked successfully',
-        date: dateString
+        date: dateISOString
       },
       { status: 200 }
     );

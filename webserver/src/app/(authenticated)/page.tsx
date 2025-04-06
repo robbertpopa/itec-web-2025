@@ -275,7 +275,8 @@ export default function Page() {
           "success"
         );
       } else {
-        throw new Error('Failed to update learning schedule');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update learning schedule');
       }
     } catch (error) {
       console.error('Error updating programmed lesson:', error);

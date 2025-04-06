@@ -41,7 +41,6 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
         const userRef = ref(db, `users/${user.uid}`);
         const snapshot = await get(userRef);
         setUserData(snapshot.val() ? { ...snapshot.val() } : null);
-        console.log("User data refreshed on token change");
       }
     });
     return unsubscribe;
