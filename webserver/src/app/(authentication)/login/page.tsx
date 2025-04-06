@@ -5,9 +5,11 @@ import { auth, db, googleProvider } from "lib/firebase";
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { get, ref } from "firebase/database";
+import { useNotification } from "lib/context/NotificationContext";
 
 export default function Page() {
     const router = useRouter();
+    const { showNotification } = useNotification();
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -19,9 +21,12 @@ export default function Page() {
             const userCredentials = await signInWithEmailAndPassword(auth, email, password);
             if (userCredentials.user) {
                 router.push('/');
+            } else {
+                showNotification('Email or password invalid, please try again', 'error');
             }
         } catch (err) {
             if (err instanceof Error) {
+                showNotification('Email or password invalid, please try again', 'error');
             }
         }
     };
