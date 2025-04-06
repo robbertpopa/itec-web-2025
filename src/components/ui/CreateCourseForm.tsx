@@ -105,7 +105,7 @@ export default function CreateCourseForm({ onClose, onSuccess }: CreateCourseFor
       )}
       
       <div className="space-y-2">
-        <label className="block text-sm font-medium">Course Image</label>
+        {/* <label className="block text-sm font-medium">Course Image</label> */}
         <div 
           className="border-2 border-dashed border-neutral-300 rounded-lg p-4 text-center cursor-pointer hover:bg-neutral-50 transition-colors"
           onClick={triggerFileUpload}
@@ -143,32 +143,32 @@ export default function CreateCourseForm({ onClose, onSuccess }: CreateCourseFor
       </div>
       
       <div className="space-y-2">
-        <label htmlFor="name" className="block text-sm font-medium">
-          Course Name <span className="text-red-500">*</span>
+        <label htmlFor="name" className="block text-sm font-medium floating-label">
+          <span> Course Title</span>
+          <input
+            id="name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Enter course title"
+            className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            required
+            />
         </label>
-        <input
-          id="name"
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Enter course name"
-          className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-          required
-        />
       </div>
       
       <div className="space-y-2">
-        <label htmlFor="description" className="block text-sm font-medium">
-          Course Description
+        <label htmlFor="description" className="block text-sm font-medium floating-label">
+          <span>Course Description</span>
+          <textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Enter course description"
+            rows={4}
+            className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            />
         </label>
-        <textarea
-          id="description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Enter course description"
-          rows={4}
-          className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-        />
       </div>
       
       <div className="flex justify-end space-x-3 pt-4">

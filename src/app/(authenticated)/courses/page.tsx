@@ -124,10 +124,14 @@ export default function Page() {
     }, [searchTerm]);
 
     return (            
-        <div className="drawer lg:drawer-open">
-            <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
-            <div className="drawer-content container mx-auto px-4 py-8 flex flex-col">
-
+        <div className="flex flex-col">
+            <div className="w-full container flex mx-auto justify-center items-center">
+                <label className="input flex justify-center items-center md:max-w-150 w-full">
+                    <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g strokeLinejoin="round" strokeLinecap="round" strokeWidth="2.5" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></g></svg>
+                    <input type="search" className="grow" placeholder="Search courses..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                </label>
+            </div>
+            <div className="container mx-auto px-4 py-8 flex flex-col">
                 {error && (
                     <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
                         {error}
@@ -190,31 +194,6 @@ export default function Page() {
                         </div>
                     </div>
                 )}
-
-                <label htmlFor="my-drawer-2" className="btn btn-primary drawer-button lg:hidden mt-4">
-                    Open drawer
-                </label>
-            </div>
-            <div className="drawer-side">
-                <label htmlFor="my-drawer-2" aria-label="close sidebar" className="drawer-overlay"></label>
-                <div className="p-4 w-80 min-h-full bg-base-200">
-                    <header className="mb-8">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                            <div className="relative flex-grow max-w-md w-full">
-                                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                    <Search className="h-5 w-5 text-neutral-400" />
-                                </div>
-                                <input 
-                                    type="text" 
-                                    placeholder="Search courses..." 
-                                    className="pl-10 pr-4 py-3 w-full rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                            </div>
-                        </div>
-                    </header>
-                </div>
             </div>
         </div>
     );

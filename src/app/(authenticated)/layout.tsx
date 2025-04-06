@@ -10,6 +10,7 @@ import CreateCourseForm from "@/components/ui/CreateCourseForm";
 import React, { createContext, useEffect, useState } from "react";
 import { get, ref } from "firebase/database";
 import { auth, db } from "lib/firebase";
+import { useRouter } from 'next/navigation';
 
 interface UserData {
   fullName: string;
@@ -30,6 +31,7 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [avatarLoaded, setAvatarLoaded] = useState<boolean>(false);
+  const router = useRouter();
 
   useEffect(() => {
     setAvatarLoaded(false);
@@ -49,7 +51,7 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
 
   return (
     <UserContext.Provider value={userData}>
-      <div className="w-full flex flex-col justify-start items-start box-border">
+      <div className="relative top-0 left-0 w-full h-full flex flex-col justify-start items-start box-border">
         <nav className="navbar bg-base-100 shadow px-6">
           <div className="navbar-start">
             <Link href="/" className="flex items-center gap-2">
@@ -168,15 +170,15 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
             </Link>
           </div>
         </nav>
-        <main className="w-full flex flex-col px-6 py-4 bg min-h-screen">{children}</main>
+        <main className="w-full flex flex-col px-6 py-4 bg min-h-screen h-fit">{children}</main>
         <Modal
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
-          title="Create New Course"
+          title="Create a New Course"
         >
           <CreateCourseForm
             onClose={() => setIsCreateModalOpen(false)}
-            onSuccess={() => setIsCreateModalOpen(false)}
+            onSuccess={(courseId: string) => { setIsCreateModalOpen(false); router.push('/courses/' + courseId);} }
           />
         </Modal>
       </div>

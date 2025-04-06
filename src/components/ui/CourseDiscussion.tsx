@@ -9,6 +9,7 @@ type Comment = {
     id: string;
     userName: string;
     userId: string; 
+    profilePicture: string;
     message: string;
     createdAt: string;
 };
@@ -53,16 +54,19 @@ export default function CourseDiscussion({ id }: { id: string }) {
                     const userRef = ref(db, `users/${commentFields.userId}`);
                     const userSnapshot = await get(userRef);
                     let userName = '';
+                    let profilePicture = '';
                     
                     if (userSnapshot.exists()) {
                         const userData = userSnapshot.val();
                         userName = userData.fullName || '';
+                        profilePicture = userData.profilePicture || '';
                     }
 
                     return {
                         id: commentId,
                         userId: commentFields.userId,
                         userName: userName,
+                        profilePicture: profilePicture,
                         message: commentFields.message,
                         createdAt: commentFields.createdAt,
                     };
@@ -103,6 +107,7 @@ export default function CourseDiscussion({ id }: { id: string }) {
             const newCommentObj: Comment = {
                 id: newCommentRef.key || '',
                 userName: user.displayName || '',
+                profilePicture: user.photoURL || '',
                 userId: user.uid,
                 message: newComment,
                 createdAt: new Date().toISOString(),
@@ -118,8 +123,8 @@ export default function CourseDiscussion({ id }: { id: string }) {
     };
 
     return (
-        <div className="lg:w-3/4 mx-auto mt-4">
-            <h2 className="text-2xl font-bold mb-6">Discussion</h2>
+        <div className="mt-4 w-full">
+            <h2 className="text-lg font-semibold mb-6">Discussion</h2>
             
             {loading ? (
                 <div className="flex justify-center my-8">
@@ -138,7 +143,7 @@ export default function CourseDiscussion({ id }: { id: string }) {
                             {comments.map((comment) => (
                                 <UserComment 
                                     key={comment.id}
-                                    userData={{ userName: comment.userName }}
+                                    userData={{ userName: comment.userName, profilePicture: comment.profilePicture }}
                                     comment={comment.message}
                                     metadata={{ 
                                         date: comment.createdAt, 
@@ -155,7 +160,7 @@ export default function CourseDiscussion({ id }: { id: string }) {
                                 <div className="flex flex-col gap-4">
                                     <textarea 
                                         className="textarea w-full" 
-                                        placeholder="Add to the discussion..."
+                                        placeholder="Type your message..."
                                         value={newComment}
                                         onChange={(e) => setNewComment(e.target.value)}
                                         rows={3}

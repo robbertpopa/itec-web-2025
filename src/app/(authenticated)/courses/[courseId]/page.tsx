@@ -32,9 +32,9 @@ export default async function Page({ params }:
             }} 
             owner={{
                 displayName: owner.displayName,
+                profilePicture: owner.photoURL
             }} 
             imageUrl={imageUrl} 
         />
-        <CourseDiscussion id={courseId} />
     </>)
 }

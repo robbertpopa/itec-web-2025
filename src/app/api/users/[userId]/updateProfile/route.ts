@@ -10,26 +10,14 @@ const auth = getAuth(firebaseApp);
 const db = getDatabase(firebaseApp);
 const storage = getStorage(firebaseApp);
 
-async function urlToFile(url: string, filename: string, mimeType?: string): Promise<File> {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error('Failed to fetch image');
-  const blob = await response.blob();
-  return new File([blob], filename, { type: mimeType || blob.type });
-}
-
 async function parseFormData(req: NextRequest) {
   const formData = await req.formData();
-  const fullName = formData.get('full_name') as string;
-  const imageField = formData.get('image');
-  let imageFile: File | null = null;
-  if (typeof imageField === 'string') {
-    imageFile = await urlToFile(imageField, 'downloadedImage.webp');
-  } else if (imageField instanceof File) {
-    imageFile = imageField;
-  }
+  const imageFile = formData.get('image') as File | null;
+
   const buffer = imageFile ? Buffer.from(await imageFile.arrayBuffer()) : null;
-  return { fields: { fullName }, file: buffer ? { buffer, originalName: imageFile!.name, mime: imageFile!.type } : null };
+  return { file: buffer ? { buffer, originalName: imageFile!.name, mime: imageFile!.type } : null };
 }
+
 
 async function uploadProfilePicture(buffer: Buffer, userId: string): Promise<string> {
   const bucket = storage.bucket();
@@ -53,15 +41,13 @@ export async function POST(req: NextRequest) {
   try {
     const decodedToken = await auth.verifyIdToken(token);
     const userId = decodedToken.uid;
-    const { fields, file } = await parseFormData(req);
+    const { file } = await parseFormData(req);
     let imageUrl: string | null = null;
     if (file?.buffer) {
       imageUrl = await uploadProfilePicture(file.buffer, userId);
     }
-    await db.ref(`/users/${userId}/updateProfile`).set({
-      fullName: fields.fullName,
+    await db.ref(`/users/${userId}/updateProfile`).update({
       profilePicture: imageUrl,
-      createdAt: new Date().toISOString(),
     });
     return NextResponse.json({ success: true, userId, message: 'User created successfully' }, { status: 201 });
   } catch (error) {
