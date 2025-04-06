@@ -4,11 +4,11 @@ import Link from "next/link";
 import CourseDiscussion from "./CourseDiscussion";
 import { Calendar, Heart, Share2 } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
 import { useNotification } from "lib/context/NotificationContext";
+import { useState, useEffect } from "react";
+import { auth } from "lib/firebase";
 import Modal from "./Modal";
 import { useRouter } from "next/navigation";
-import { auth } from "lib/firebase";
 
 function getInitials(name: string | undefined): string {
   if (!name) return "";
@@ -31,6 +31,44 @@ export default function CourseDetails({
   const [newLessonName, setNewLessonName] = useState("");
   const [liked, setLiked] = useState(false);
   const router = useRouter();
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingEnrollment, setIsCheckingEnrollment] = useState(true);
+
+  // Check if the user is already enrolled in this course
+  useEffect(() => {
+    const checkEnrollmentStatus = async () => {
+      try {
+        const token = await auth.currentUser?.getIdToken();
+        if (!token) {
+          setIsCheckingEnrollment(false);
+          return;
+        }
+
+        const response = await fetch('/api/enrollments', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          // Check if this course is in the user's enrollments
+          const isUserEnrolled = data.enrollments && 
+            data.enrollments[course.id] !== undefined;
+          
+          setIsEnrolled(isUserEnrolled);
+        }
+      } catch (error) {
+        console.error("Error checking enrollment status:", error);
+      } finally {
+        setIsCheckingEnrollment(false);
+      }
+    };
+
+    checkEnrollmentStatus();
+  }, [course.id]);
 
   const handleShare = async () => {
     try {
@@ -76,10 +114,78 @@ export default function CourseDetails({
       showNotification("Error adding lesson", "error");
     }
   };
+  const handleEnrollment = async () => {
+    try {
+      setIsLoading(true);
+      const token = await auth.currentUser?.getIdToken();
+      
+      if (!token) {
+        showNotification("You need to be logged in to enroll in courses", "error");
+        return;
+      }
+
+      const response = await fetch('/api/enrollments', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ courseId: course.id })
+      });
+
+      if (response.ok) {
+        setIsEnrolled(true);
+        showNotification("Successfully enrolled in the course!", "success");
+      } else {
+        const error = await response.json();
+        showNotification(error.error || "Failed to enroll in the course", "error");
+      }
+    } catch (error) {
+      console.error("Error enrolling in course:", error);
+      showNotification("An error occurred while enrolling", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUnenroll = async () => {
+    try {
+      setIsLoading(true);
+      const token = await auth.currentUser?.getIdToken();
+      
+      if (!token) {
+        showNotification("You need to be logged in to unenroll from courses", "error");
+        return;
+      }
+
+      const response = await fetch('/api/enrollments', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ courseId: course.id })
+      });
+
+      if (response.ok) {
+        setIsEnrolled(false);
+        showNotification("Successfully unenrolled from the course", "success");
+      } else {
+        const error = await response.json();
+        showNotification(error.error || "Failed to unenroll from the course", "error");
+      }
+    } catch (error) {
+      console.error("Error unenrolling from course:", error);
+      showNotification("An error occurred while unenrolling", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <>
       <div className="p-12 container mx-auto flex flex-row gap-8">
+        {/* Left Section */}
         <div className="card flex flex-col rounded-lg shadow-lg overflow-hidden w-2/3">
           <div className="relative overflow-hidden">
             {imageUrl ? (
@@ -97,8 +203,10 @@ export default function CourseDetails({
               </div>
             )}
           </div>
+  
           <div className="p-10">
             <h1 className="text-3xl font-bold mb-4">{course.name}</h1>
+  
             <div className="flex flex-row gap-2 items-center">
               <div className="avatar">
                 <div className="w-10 h-10 rounded-full overflow-hidden">
@@ -124,6 +232,7 @@ export default function CourseDetails({
                 </div>
               </div>
             </div>
+  
             <div className="font-semibold text-md mt-10 mb-2">About this course</div>
             {course.description ? (
               <div className="prose max-w-none">
@@ -134,6 +243,7 @@ export default function CourseDetails({
                 No description provided for this course.
               </div>
             )}
+  
             <div className="mt-10">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold mb-4 pb-2 border-b flex-grow">
@@ -152,6 +262,7 @@ export default function CourseDetails({
                   </svg>
                 </button>
               </div>
+  
               {course.lessons && course.lessons.length > 0 ? (
                 <ul className="space-y-3">
                   {course.lessons.map((lesson, idx) => (
@@ -179,15 +290,46 @@ export default function CourseDetails({
                 </div>
               )}
             </div>
+  
             <CourseDiscussion id={course.id} />
           </div>
         </div>
+  
+        {/* Right Section */}
         <div className="w-1/3 h-fit gap-8 flex flex-col">
           <div className="card flex flex-col rounded-lg shadow-md w-full p-6 h-fit gap-6">
             <div className="font-semibold text-lg">Registration</div>
-            <button type="button" className="btn btn-active btn-primary w-full">
-              Join now
-            </button>
+            {isCheckingEnrollment ? (
+              <button type="button" className="btn btn-primary w-full" disabled>
+                <span className="loading loading-spinner loading-sm"></span>
+                Checking enrollment...
+              </button>
+            ) : isEnrolled ? (
+              <button
+                type="button"
+                className="btn btn-error w-full"
+                onClick={handleUnenroll}
+                disabled={isLoading}
+              >
+                {isLoading && (
+                  <span className="loading loading-spinner loading-sm mr-2"></span>
+                )}
+                Leave Course
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-active btn-primary w-full"
+                onClick={handleEnrollment}
+                disabled={isLoading}
+              >
+                {isLoading && (
+                  <span className="loading loading-spinner loading-sm mr-2"></span>
+                )}
+                Join now
+              </button>
+            )}
+  
             <button
               type="button"
               className="btn btn-outline btn-secondary w-full flex items-center justify-center gap-2"
@@ -195,6 +337,7 @@ export default function CourseDetails({
               <Calendar size={18} />
               Add to Calendar
             </button>
+  
             <div className="flex gap-4">
               <button
                 type="button"
@@ -214,33 +357,20 @@ export default function CourseDetails({
               </button>
             </div>
           </div>
+  
           <div className="card flex flex-col rounded-lg shadow-md w-full p-6 h-fit gap-6">
             <h2 className="text-xl font-semibold">Participants (10)</h2>
             <div className="avatar-group -space-x-4">
-              <div className="avatar">
-                <div className="w-10 rounded-full">
-                  <img
-                    src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-                    alt="Participant 1"
-                  />
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="avatar">
+                  <div className="w-10 rounded-full">
+                    <img
+                      src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
+                      alt={`Participant ${i}`}
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="avatar">
-                <div className="w-10 rounded-full">
-                  <img
-                    src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-                    alt="Participant 2"
-                  />
-                </div>
-              </div>
-              <div className="avatar">
-                <div className="w-10 rounded-full">
-                  <img
-                    src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-                    alt="Participant 3"
-                  />
-                </div>
-              </div>
+              ))}
               <div className="avatar avatar-placeholder">
                 <div className="w-10 bg-neutral text-neutral-content">
                   <span>+7</span>
@@ -250,7 +380,8 @@ export default function CourseDetails({
           </div>
         </div>
       </div>
-
+  
+      {/* Modal */}
       <Modal
         isOpen={isAddLessonModalOpen}
         onClose={() => setIsAddLessonModalOpen(false)}
@@ -282,5 +413,5 @@ export default function CourseDetails({
         </div>
       </Modal>
     </>
-  );
+  );  
 }
