@@ -51,8 +51,8 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
 
   return (
     <UserContext.Provider value={userData}>
-      <div className="relative top-0 left-0 w-full h-full flex flex-col justify-start items-start box-border">
-        <nav className="navbar bg-base-100 shadow px-6">
+      <div className="w-full h-full box-border">
+        <nav className="fixed top-0 left-0 w-full z-50 navbar bg-base-100 shadow px-6">
           <div className="navbar-start">
             <Link href="/" className="flex items-center gap-2">
               <Image
@@ -142,12 +142,9 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
                       <div className="w-10 h-10 bg-gray-300 rounded-full animate-pulse" />
                     ) : userData.profilePicture ? (
                       <>
-                        {!avatarLoaded && (
-                          <div className="w-10 h-10 bg-gray-300 rounded-full animate-pulse absolute inset-0 z-10" />
-                        )}
                         <img
                           src={`${userData.profilePicture}?t=${new Date().getTime()}`}
-                          alt=""
+                          alt="Profile picture"
                           className="w-full h-full object-cover"
                           onLoad={() => setAvatarLoaded(true)}
                         />
@@ -170,7 +167,10 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
             </Link>
           </div>
         </nav>
-        <main className="w-full flex flex-col px-6 py-4 bg min-h-screen h-fit">{children}</main>
+        {/* Main content with top padding to account for fixed navbar height */}
+        <main className="w-full flex flex-col px-6 py-4 bg min-h-screen pt-24">
+          {children}
+        </main>
         <Modal
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
@@ -178,7 +178,10 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
         >
           <CreateCourseForm
             onClose={() => setIsCreateModalOpen(false)}
-            onSuccess={(courseId: string) => { setIsCreateModalOpen(false); router.push('/courses/' + courseId);} }
+            onSuccess={(courseId: string) => {
+              setIsCreateModalOpen(false);
+              router.push("/courses/" + courseId);
+            }}
           />
         </Modal>
       </div>

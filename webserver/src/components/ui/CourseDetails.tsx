@@ -1,5 +1,10 @@
+"use client"
+
 import Link from "next/link";
 import CourseDiscussion from "./CourseDiscussion";
+import { Calendar, Heart, Share2, Star } from "lucide-react";
+import Image from "next/image";
+import { useNotification } from "lib/context/NotificationContext";
 
 export default function CourseDetails({
   course,
@@ -7,18 +12,32 @@ export default function CourseDetails({
   imageUrl,
 }: {
   course: { id: string; name: string; description?: string; lessons?: string[] };
-  owner: { displayName?: string, profilePicture?: string };
+  owner: { displayName?: string; profilePicture?: string };
   imageUrl: string | null;
 }) {
+  const { showNotification } = useNotification();
+
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      showNotification("Link copied to clipboard", "success");
+    } catch (error) {
+      showNotification("Failed to copy link", "error");
+    }
+  };
+
   return (
-    <div className="p-12 container mx-auto">
-      <div className="card flex flex-col rounded-lg shadow-sm overflow-hidden">
-        <div className="relative overflow-hidden shadow-md">
+    <div className="p-12 container mx-auto flex flex-row gap-8">
+      <div className="card flex flex-col rounded-lg shadow-lg overflow-hidden w-2/3">
+        <div className="relative overflow-hidden">
           {imageUrl ? (
-            <img
+            <Image
               src={imageUrl}
               alt={`Cover image for ${course.name}`}
-              className="w-full rounded-t-lg object-cover max-h-60"
+              fill
+              sizes="(min-width: 1024px) 33vw, (min-width: 768px) 40vw, 100vw"
+              className="object-cover transition-transform duration-300 hover:scale-105"
+              priority
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-base-200 text-base-content/50">
@@ -38,8 +57,10 @@ export default function CourseDetails({
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="bg-neutral-focus text-neutral-content rounded-full w-40 h-40 flex items-center justify-center">
-                    <span className="text-5xl">{getInitials(owner.displayName)}</span>
+                  <div className="bg-neutral-focus text-neutral-content rounded-full w-10 h-10 flex items-center justify-center">
+                    <span className="text-sm">
+                      {owner.displayName ? getInitials(owner.displayName) : "?"}
+                    </span>
                   </div>
                 )}
               </div>
@@ -51,15 +72,13 @@ export default function CourseDetails({
               </div>
             </div>
           </div>
-          <div className="font-semibold text-md mt-10 mb-2">
-            About this course
-          </div>
+          <div className="font-semibold text-md mt-10 mb-2">About this course</div>
           {course.description ? (
             <div className="prose max-w-none">
               <p className="text-base-content/80 mb-4">{course.description}</p>
             </div>
           ) : (
-            <div className="italic mb-4">
+            <div className="italic mb-4 bg-base-200/50 rounded-lg p-4 text-base-content/70">
               No description provided for this course.
             </div>
           )}
@@ -93,6 +112,63 @@ export default function CourseDetails({
             )}
           </div>
           <CourseDiscussion id={course.id} />
+        </div>
+      </div>
+      <div className="w-1/3 h-fit gap-8 flex flex-col">
+        <div className="card flex flex-col rounded-lg shadow-md w-full p-6 h-fit gap-6">
+          <div className="font-semibold text-lg">Registration</div>
+          <button type="button" className="btn btn-active btn-primary w-full">
+            Join now
+          </button>
+          <button
+            type="button"
+            className="btn btn-outline btn-secondary w-full flex items-center justify-center gap-2"
+          >
+            <Calendar size={18} />
+            Add to Calendar
+          </button>
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={handleShare}
+              className="btn btn-outline btn-info w-1/2 flex items-center justify-center gap-2"
+            >
+              <Share2 size={18} />
+              Share
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline btn-accent w-1/2 flex items-center justify-center gap-2"
+            >
+              <Star size={18} />
+              Favorite
+            </button>
+          </div>
+        </div>
+        <div className="card flex flex-col rounded-lg shadow-md w-full p-6 h-fit gap-6">
+          <h2 className="text-xl font-semibold">Participants (10)</h2>
+          <div className="avatar-group -space-x-4">
+            <div className="avatar">
+              <div className="w-10 rounded-full">
+                <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" alt="Participant 1" />
+              </div>
+            </div>
+            <div className="avatar">
+              <div className="w-10 rounded-full">
+                <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" alt="Participant 2" />
+              </div>
+            </div>
+            <div className="avatar">
+              <div className="w-10 rounded-full">
+                <img src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" alt="Participant 3" />
+              </div>
+            </div>
+            <div className="avatar avatar-placeholder">
+              <div className="w-10 bg-neutral text-neutral-content">
+                <span>+7</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
