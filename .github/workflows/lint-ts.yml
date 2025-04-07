@@ -15,6 +15,9 @@ jobs:
     name: Run linters
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
@@ -25,11 +28,12 @@ jobs:
           node-version: 23
 
       - name: Install Node.js dependencies
-        run: yarn
+        run: cd webserver && yarn --frozen-lockfile
 
       - name: Run linters
         uses: wearerequired/lint-action@v2
         with:
+          auto_fix: true
           eslint: true
           eslint_dir: webserver/
           prettier: true
