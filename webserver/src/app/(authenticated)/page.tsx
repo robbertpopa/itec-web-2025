@@ -50,9 +50,9 @@ export default function Page() {
 
   useEffect(() => {
     const fetchData = async () => {
-        try {
+      try {
         const user = auth.currentUser;
-    if (!user) return
+        if (!user) return;
 
         setLoading(true);
 
