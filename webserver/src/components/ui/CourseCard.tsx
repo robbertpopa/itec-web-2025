@@ -11,12 +11,15 @@ interface UserData {
 }
 
 function getInitials(name: string): string {
-    if (!name) return "";
-    
-    const parts = name.trim().split(" ");
-    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-    
-    return parts[0].charAt(0).toUpperCase() + parts[parts.length - 1].charAt(0).toUpperCase();
+  if (!name) return "";
+
+  const parts = name.trim().split(" ");
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+
+  return (
+    parts[0].charAt(0).toUpperCase() +
+    parts[parts.length - 1].charAt(0).toUpperCase()
+  );
 }
 
 interface CourseCardProps {
@@ -28,26 +31,27 @@ interface CourseCardProps {
   course?: any;
 }
 
-export default function CourseCard({ 
+export default function CourseCard({
   id,
   title,
   description,
   thumbnail,
   authorName,
-  course
+  course,
 }: CourseCardProps) {
   const router = useRouter();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const courseId = course?.id || id || '';
-  const courseTitle = course?.name || title || '';
-  const courseDescription = course?.description || description || '';
-  const courseThumbnail = course?.imageUrl || thumbnail || '';
+  const courseId = course?.id || id || "";
+  const courseTitle = course?.name || title || "";
+  const courseDescription = course?.description || description || "";
+  const courseThumbnail = course?.imageUrl || thumbnail || "";
   const courseOwnerId = course?.ownerId;
-  const courseOwnerName = course?.ownerName || '';
-  const courseAuthorName = course?.authorName || authorName || courseOwnerName || '';
-  const ownerProfilePicture = course?.ownerProfilePicture || '';
+  const courseOwnerName = course?.ownerName || "";
+  const courseAuthorName =
+    course?.authorName || authorName || courseOwnerName || "";
+  const ownerProfilePicture = course?.ownerProfilePicture || "";
 
   useEffect(() => {
     if (!ownerProfilePicture && courseOwnerId) {
@@ -63,17 +67,21 @@ export default function CourseCard({
           });
           if (response.ok) {
             const data = await response.json();
-            
+
             if (data && data.success && data.user) {
               setUserData({
                 fullName: data.user.fullName || "",
-                profilePicture: data.user.profilePicture || ""
+                profilePicture: data.user.profilePicture || "",
               });
             } else {
-              console.warn('User data not found in expected structure:', data);
+              console.warn("User data not found in expected structure:", data);
             }
           } else {
-            console.error('Failed to fetch user data:', response.status, response.statusText);
+            console.error(
+              "Failed to fetch user data:",
+              response.status,
+              response.statusText
+            );
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
@@ -86,15 +94,15 @@ export default function CourseCard({
     }
   }, [courseOwnerId, ownerProfilePicture]);
 
-  useEffect(() => {
-  }, [userData]);
+  useEffect(() => {}, [userData]);
 
   const handleViewMaterials = () => {
     router.push(`/courses/${courseId}`);
   };
 
   const displayName = courseAuthorName || userData?.fullName || "Unknown";
-  const displayProfilePicture = ownerProfilePicture || userData?.profilePicture || "";
+  const displayProfilePicture =
+    ownerProfilePicture || userData?.profilePicture || "";
 
   return (
     <div className="card bg-base-100 shadow-sm hover:shadow-md transition-shadow">
@@ -110,7 +118,9 @@ export default function CourseCard({
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-base-200">
-            <span className="text-sm text-base-content opacity-40">No image</span>
+            <span className="text-sm text-base-content opacity-40">
+              No image
+            </span>
           </div>
         )}
       </figure>
@@ -122,32 +132,33 @@ export default function CourseCard({
           {courseDescription || "No description available."}
         </p>
         <div className="flex flex-row items-center gap-2">
-            <div className="avatar">
-                <div className="w-10 h-10 rounded-full overflow-hidden">
-                {loading ? (
-                    <div className="w-10 h-10 bg-gray-300 rounded-full animate-pulse" />
-                ) : displayProfilePicture ? (
-                    <img
-                    src={`${displayProfilePicture}?t=${new Date().getTime()}`}
-                    alt=""
-                    className="w-full h-full object-cover"
-                    />
-                ) : (
-                    <div className="bg-neutral-focus text-neutral-content rounded-full w-10 h-10 flex items-center justify-center">
-                    <span className="text-xl">{getInitials(displayName)}</span>
-                    </div>
-                )}
+          <div className="avatar">
+            <div className="w-10 h-10 rounded-full overflow-hidden">
+              {loading ? (
+                <div className="w-10 h-10 bg-gray-300 rounded-full animate-pulse" />
+              ) : displayProfilePicture ? (
+                <img
+                  src={`${displayProfilePicture}?t=${new Date().getTime()}`}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="bg-neutral-focus text-neutral-content rounded-full w-10 h-10 flex items-center justify-center">
+                  <span className="text-xl">{getInitials(displayName)}</span>
                 </div>
+              )}
             </div>
-            <div className="text-xs flex flex-col">
-                <span className="text-gray-500">Hosted by</span>
-                <div className="font-semibold text-sm">
-                    {displayName}
-                </div>
-            </div>
+          </div>
+          <div className="text-xs flex flex-col">
+            <span className="text-gray-500">Hosted by</span>
+            <div className="font-semibold text-sm">{displayName}</div>
+          </div>
         </div>
         <div className="card-actions justify-end mt-2">
-          <button onClick={handleViewMaterials} className="btn btn-primary btn-outline btn-sm w-full">
+          <button
+            onClick={handleViewMaterials}
+            className="btn btn-primary btn-outline btn-sm w-full"
+          >
             View Materials
           </button>
         </div>

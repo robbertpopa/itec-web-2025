@@ -12,7 +12,7 @@ import {
   FileVideo,
   Folder,
   Image as ImageIcon,
-  LetterText
+  LetterText,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNotification } from "lib/context/NotificationContext";
@@ -40,18 +40,29 @@ export default function CourseMaterialTable({
   const courseId = parts[1];
   const lessonIndex = parts[2] || "0";
 
-  const [summarizedMap, setSummarizedMap] = useState<Record<string, boolean>>({});
+  const [summarizedMap, setSummarizedMap] = useState<Record<string, boolean>>(
+    {}
+  );
 
   useEffect(() => {
     if (hasFiles) {
       fileData!.forEach(async (file) => {
         const fileFullPath = `${path}/${file.name}`;
-        const summarizedFilePath = fileFullPath.replace(/^courses/, "summarized");
+        const summarizedFilePath = fileFullPath.replace(
+          /^courses/,
+          "summarized"
+        );
         try {
           await getDownloadURL(storageRef(storage, summarizedFilePath));
-          setSummarizedMap((prev) => ({ ...prev, [file.name]: true }));
+          setSummarizedMap((prev) => ({
+            ...prev,
+            [file.name]: true,
+          }));
         } catch {
-          setSummarizedMap((prev) => ({ ...prev, [file.name]: false }));
+          setSummarizedMap((prev) => ({
+            ...prev,
+            [file.name]: false,
+          }));
         }
       });
     }
@@ -142,12 +153,13 @@ export default function CourseMaterialTable({
       const summarizedFilePath = fileFullPath.replace(/^courses/, "summarized");
 
       try {
-        const url = await getDownloadURL(storageRef(storage, summarizedFilePath));
+        const url = await getDownloadURL(
+          storageRef(storage, summarizedFilePath)
+        );
         showNotification("Summarized file found. Downloading...", "success");
         window.open(url, "_blank");
         return;
-      } catch {
-      }
+      } catch {}
 
       const token = await auth.currentUser?.getIdToken();
       const apiUrl = `/api/courses/${courseId}/${lessonIndex}/${encodeURIComponent(fileFullPath)}`;
@@ -161,7 +173,10 @@ export default function CourseMaterialTable({
         showNotification("Summarization queued successfully", "success");
       } else {
         const errData = await response.json();
-        showNotification(errData.error || "Failed to queue summarization", "error");
+        showNotification(
+          errData.error || "Failed to queue summarization",
+          "error"
+        );
       }
     } catch {
       showNotification("Error queuing summarization", "error");
@@ -175,7 +190,11 @@ export default function CourseMaterialTable({
           <div className="flex flex-row justify-between border-b p-4">
             <h3 className="card-title text-lg">Course Materials</h3>
             <div className="flex gap-2">
-              <button type="button" className="btn btn-circle" onClick={handlePlusClick}>
+              <button
+                type="button"
+                className="btn btn-circle"
+                onClick={handlePlusClick}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -183,7 +202,11 @@ export default function CourseMaterialTable({
                   stroke="currentColor"
                   className="size-[1.2em]"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 4v16m8-8H4"
+                  />
                 </svg>
               </button>
               <button
@@ -221,14 +244,17 @@ export default function CourseMaterialTable({
                     const fileFullPath = `${path}/${file.name}`;
                     const isSummarized = summarizedMap[file.name];
                     return (
-                      <tr key={file.name} className="hover:bg-base-200/50 transition-colors">
+                      <tr
+                        key={file.name}
+                        className="hover:bg-base-200/50 transition-colors"
+                      >
                         <td className="text-base-content/70">
                           {mapMimeTypeToIcon(file.mimeType)}
                         </td>
                         <td>
                           <Link
                             className="hover:text-primary transition-colors flex items-center gap-2"
-                            href={'/' + path + '/' + file.name}
+                            href={"/" + path + "/" + file.name}
                           >
                             <span className="font-medium">{file.name}</span>
                           </Link>
@@ -243,7 +269,10 @@ export default function CourseMaterialTable({
                             onClick={() => handleSummarize(fileFullPath)}
                           >
                             {isSummarized ? (
-                              <CheckCircle size={16} className="text-green-500" />
+                              <CheckCircle
+                                size={16}
+                                className="text-green-500"
+                              />
                             ) : (
                               <Sparkles size={16} />
                             )}

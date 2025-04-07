@@ -1,5 +1,5 @@
-import admin from 'firebase-admin';
-import { firebaseConfig } from './firebaseConfig';
+import admin from "firebase-admin";
+import { firebaseConfig } from "./firebaseConfig";
 
 function getFirebaseAdmin() {
   try {
@@ -7,7 +7,7 @@ function getFirebaseAdmin() {
   } catch {
     return admin.initializeApp({
       ...firebaseConfig,
-      credential: admin.credential.cert('.firebase-service-account.json'),
+      credential: admin.credential.cert(".firebase-service-account.json"),
     });
   }
 }

@@ -9,9 +9,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <title>OfCoursly</title>
       </head>
       <body className="h-svh">
-        <NotificationProvider>
-          {children}
-        </NotificationProvider>
+        <NotificationProvider>{children}</NotificationProvider>
       </body>
     </html>
   );

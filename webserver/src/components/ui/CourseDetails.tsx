@@ -13,7 +13,10 @@ function getInitials(name: string | undefined): string {
   if (!name) return "";
   const parts = name.trim().split(" ");
   if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-  return parts[0].charAt(0).toUpperCase() + parts[parts.length - 1].charAt(0).toUpperCase();
+  return (
+    parts[0].charAt(0).toUpperCase() +
+    parts[parts.length - 1].charAt(0).toUpperCase()
+  );
 }
 
 export default function CourseDetails({
@@ -21,7 +24,12 @@ export default function CourseDetails({
   owner,
   imageUrl,
 }: {
-  course: { id: string; name: string; description?: string; lessons?: string[] };
+  course: {
+    id: string;
+    name: string;
+    description?: string;
+    lessons?: string[];
+  };
   owner: { displayName?: string; profilePicture?: string };
   imageUrl: string | null;
 }) {
@@ -43,18 +51,18 @@ export default function CourseDetails({
           return;
         }
 
-        const response = await fetch('/api/enrollments', {
-          method: 'GET',
+        const response = await fetch("/api/enrollments", {
+          method: "GET",
           headers: {
-            'Authorization': `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         });
 
         if (response.ok) {
           const data = await response.json();
-          const isUserEnrolled = data.enrollments && 
-            data.enrollments[course.id] !== undefined;
-          
+          const isUserEnrolled =
+            data.enrollments && data.enrollments[course.id] !== undefined;
+
           setIsEnrolled(isUserEnrolled);
         }
       } catch (error) {
@@ -115,19 +123,22 @@ export default function CourseDetails({
     try {
       setIsLoading(true);
       const token = await auth.currentUser?.getIdToken();
-      
+
       if (!token) {
-        showNotification("You need to be logged in to enroll in courses", "error");
+        showNotification(
+          "You need to be logged in to enroll in courses",
+          "error"
+        );
         return;
       }
 
-      const response = await fetch('/api/enrollments', {
-        method: 'POST',
+      const response = await fetch("/api/enrollments", {
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ courseId: course.id })
+        body: JSON.stringify({ courseId: course.id }),
       });
 
       if (response.ok) {
@@ -135,7 +146,10 @@ export default function CourseDetails({
         showNotification("Successfully enrolled in the course!", "success");
       } else {
         const error = await response.json();
-        showNotification(error.error || "Failed to enroll in the course", "error");
+        showNotification(
+          error.error || "Failed to enroll in the course",
+          "error"
+        );
       }
     } catch (error) {
       console.error("Error enrolling in course:", error);
@@ -149,19 +163,22 @@ export default function CourseDetails({
     try {
       setIsLoading(true);
       const token = await auth.currentUser?.getIdToken();
-      
+
       if (!token) {
-        showNotification("You need to be logged in to unenroll from courses", "error");
+        showNotification(
+          "You need to be logged in to unenroll from courses",
+          "error"
+        );
         return;
       }
 
-      const response = await fetch('/api/enrollments', {
-        method: 'DELETE',
+      const response = await fetch("/api/enrollments", {
+        method: "DELETE",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ courseId: course.id })
+        body: JSON.stringify({ courseId: course.id }),
       });
 
       if (response.ok) {
@@ -169,7 +186,10 @@ export default function CourseDetails({
         showNotification("Successfully unenrolled from the course", "success");
       } else {
         const error = await response.json();
-        showNotification(error.error || "Failed to unenroll from the course", "error");
+        showNotification(
+          error.error || "Failed to unenroll from the course",
+          "error"
+        );
       }
     } catch (error) {
       console.error("Error unenrolling from course:", error);
@@ -197,10 +217,10 @@ export default function CourseDetails({
               </div>
             )}
           </div>
-  
+
           <div className="p-10">
             <h1 className="text-3xl font-bold mb-4">{course.name}</h1>
-  
+
             <div className="flex flex-row gap-2 items-center">
               <div className="avatar">
                 <div className="w-10 h-10 rounded-full overflow-hidden">
@@ -213,7 +233,9 @@ export default function CourseDetails({
                   ) : (
                     <div className="bg-neutral-focus text-neutral-content rounded-full w-10 h-10 flex items-center justify-center">
                       <span className="text-sm">
-                        {owner.displayName ? getInitials(owner.displayName) : "?"}
+                        {owner.displayName
+                          ? getInitials(owner.displayName)
+                          : "?"}
                       </span>
                     </div>
                   )}
@@ -226,24 +248,32 @@ export default function CourseDetails({
                 </div>
               </div>
             </div>
-  
-            <div className="font-semibold text-md mt-10 mb-2">About this course</div>
+
+            <div className="font-semibold text-md mt-10 mb-2">
+              About this course
+            </div>
             {course.description ? (
               <div className="prose max-w-none">
-                <p className="text-base-content/80 mb-4">{course.description}</p>
+                <p className="text-base-content/80 mb-4">
+                  {course.description}
+                </p>
               </div>
             ) : (
               <div className="italic mb-4 bg-base-200/50 rounded-lg p-4 text-base-content/70">
                 No description provided for this course.
               </div>
             )}
-  
+
             <div className="mt-10">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold mb-4 pb-2 border-b flex-grow">
                   Course Lessons
                 </h2>
-                <button onClick={() => setIsAddLessonModalOpen(true)} type="button" className="btn btn-circle btn-outline ml-4">
+                <button
+                  onClick={() => setIsAddLessonModalOpen(true)}
+                  type="button"
+                  className="btn btn-circle btn-outline ml-4"
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -256,7 +286,7 @@ export default function CourseDetails({
                   </svg>
                 </button>
               </div>
-  
+
               {course.lessons && course.lessons.length > 0 ? (
                 <ul className="space-y-3">
                   {course.lessons.map((lesson, idx) => (
@@ -284,11 +314,11 @@ export default function CourseDetails({
                 </div>
               )}
             </div>
-  
+
             <CourseDiscussion id={course.id} />
           </div>
         </div>
-  
+
         <div className="w-1/3 h-fit gap-8 flex flex-col">
           <div className="card flex flex-col rounded-lg shadow-md w-full p-6 h-fit gap-6">
             <div className="font-semibold text-lg">Registration</div>
@@ -322,7 +352,7 @@ export default function CourseDetails({
                 Join now
               </button>
             )}
-  
+
             <button
               type="button"
               className="btn btn-outline btn-secondary w-full flex items-center justify-center gap-2"
@@ -330,7 +360,7 @@ export default function CourseDetails({
               <Calendar size={18} />
               Add to Calendar
             </button>
-  
+
             <div className="flex gap-4">
               <button
                 type="button"
@@ -345,12 +375,15 @@ export default function CourseDetails({
                 onClick={() => setLiked(!liked)}
                 className="btn btn-outline btn-accent w-1/2 flex items-center justify-center gap-2"
               >
-                <Heart size={18} className={liked ? "fill-current text-red-500" : ""} />
+                <Heart
+                  size={18}
+                  className={liked ? "fill-current text-red-500" : ""}
+                />
                 {liked ? "Liked" : "Like"}
               </button>
             </div>
           </div>
-  
+
           <div className="card flex flex-col rounded-lg shadow-md w-full p-6 h-fit gap-6">
             <h2 className="text-xl font-semibold">Participants (10)</h2>
             <div className="avatar-group -space-x-4">
@@ -373,7 +406,7 @@ export default function CourseDetails({
           </div>
         </div>
       </div>
-  
+
       <Modal
         isOpen={isAddLessonModalOpen}
         onClose={() => setIsAddLessonModalOpen(false)}
@@ -381,7 +414,9 @@ export default function CourseDetails({
       >
         <div className="p-4 space-y-4">
           <label className="block">
-            <span className="text-md font-medium text-base-content">Lesson Name</span>
+            <span className="text-md font-medium text-base-content">
+              Lesson Name
+            </span>
             <input
               type="text"
               value={newLessonName}
@@ -398,12 +433,16 @@ export default function CourseDetails({
             >
               Cancel
             </button>
-            <button type="button" className="btn btn-primary" onClick={handleAddLesson}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleAddLesson}
+            >
               Add Lesson
             </button>
           </div>
         </div>
       </Modal>
     </>
-  );  
+  );
 }

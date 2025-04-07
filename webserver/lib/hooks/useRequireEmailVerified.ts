@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -16,7 +16,10 @@ export default function useRequireEmailVerified() {
         router.push("/login");
       } else if (!user.emailVerified) {
         await signOut(auth);
-        showNotification('You need to verify you account before login into your account.', 'error');
+        showNotification(
+          "You need to verify you account before login into your account.",
+          "error"
+        );
         router.push("/login");
       }
     });
