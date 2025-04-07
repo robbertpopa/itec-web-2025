@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { firebase } from "lib/firebaseServer";
 import { getDatabase } from "firebase-admin/database";
 
-const firebaseApp = firebase();
-const db = getDatabase(firebaseApp);
-const bucket = firebaseApp.storage().bucket();
 
 export async function POST(req: NextRequest) {
+  const firebaseApp = firebase();
+  const db = getDatabase(firebaseApp);
+  const bucket = firebaseApp.storage().bucket();
+
   const authHeader = req.headers.get("authorization");
   if (!authHeader?.startsWith("Bearer ")) {
     return NextResponse.json(

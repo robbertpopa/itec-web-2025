@@ -1,15 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuth } from "firebase-admin/auth";
-import { getDatabase } from "firebase-admin/database";
-import { getStorage } from "firebase-admin/storage";
 import { firebase } from "lib/firebaseServer";
 import { v4 as uuidv4 } from "uuid";
 import sharp from "sharp";
-
-const firebaseApp = firebase();
-const auth = getAuth(firebaseApp);
-const db = getDatabase(firebaseApp);
-const storage = getStorage(firebaseApp);
 
 async function parseFormData(req: NextRequest) {
   const formData = await req.formData();
@@ -28,7 +20,7 @@ async function parseFormData(req: NextRequest) {
 }
 
 async function uploadCoverImage(buffer: Buffer, courseId: string) {
-  const bucket = storage.bucket();
+  const bucket = firebase().storage().bucket();
   const imagePath = `courses/${courseId}/cover.webp`;
   const fileRef = bucket.file(imagePath);
 
@@ -56,7 +48,7 @@ export async function POST(req: NextRequest) {
   const token = authHeader.split("Bearer ")[1];
 
   try {
-    const decodedToken = await auth.verifyIdToken(token);
+    const decodedToken = await firebase().auth().verifyIdToken(token);
     const userId = decodedToken.uid;
 
     const { fields, file } = await parseFormData(req);
@@ -77,7 +69,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    await db.ref(`/courses/${courseId}`).set({
+    await firebase().database().ref(`/courses/${courseId}`).set({
       name: fields.name,
       description: fields.description || "",
       ownerId: userId,

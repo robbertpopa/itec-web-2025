@@ -1,19 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
 import { getDatabase } from "firebase-admin/database";
-import { getStorage } from "firebase-admin/storage";
 import { firebase } from "lib/firebaseServer";
 import sharp from "sharp";
-
-const firebaseApp = firebase();
-const auth = getAuth(firebaseApp);
-const db = getDatabase(firebaseApp);
-const storage = getStorage(firebaseApp);
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
+  const firebaseApp = firebase();
+  const db = getDatabase(firebaseApp);
+
   const authHeader = req.headers.get("authorization");
   if (!authHeader?.startsWith("Bearer ")) {
     return NextResponse.json(
@@ -55,7 +52,7 @@ async function uploadProfilePicture(
   buffer: Buffer,
   userId: string
 ): Promise<string> {
-  const bucket = storage.bucket();
+  const bucket = firebase().storage().bucket();
   const imagePath = `users/${userId}/profile_picture.webp`;
   const fileRef = bucket.file(imagePath);
   const webpBuffer = await sharp(buffer)
@@ -68,6 +65,10 @@ async function uploadProfilePicture(
 }
 
 export async function POST(req: NextRequest) {
+  const firebaseApp = firebase();
+  const auth = getAuth(firebaseApp);
+  const db = getDatabase(firebaseApp);
+
   const authHeader = req.headers.get("authorization");
   if (!authHeader?.startsWith("Bearer ")) {
     return NextResponse.json(

@@ -4,9 +4,6 @@ import { firebase } from "lib/firebaseServer";
 import { getDatabase } from "firebase-admin/database";
 import { v4 as uuidv4 } from "uuid";
 
-const firebaseApp = firebase();
-const auth = getAuth(firebaseApp);
-const db = getDatabase(firebaseApp);
 
 export async function POST(
   req: NextRequest,
@@ -20,6 +17,10 @@ export async function POST(
     }>;
   }
 ) {
+  const firebaseApp = firebase();
+  const auth = getAuth(firebaseApp);
+  const db = getDatabase(firebaseApp);
+
   const { filePath } = await params;
   const authHeader = req.headers.get("authorization");
   if (!authHeader?.startsWith("Bearer ")) {

@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuth } from "firebase-admin/auth";
 import { firebase } from "lib/firebaseServer";
 
-const firebaseApp = firebase();
-const auth = getAuth(firebaseApp);
-const bucket = firebaseApp.storage().bucket();
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ courseId: string; lessonIndex: string }> }
 ) {
+  const firebaseApp = firebase();
+  const auth = getAuth(firebaseApp);
+  const bucket = firebaseApp.storage().bucket();
+
   const { courseId, lessonIndex } = await params;
   const authHeader = req.headers.get("authorization");
   if (!authHeader?.startsWith("Bearer ")) {

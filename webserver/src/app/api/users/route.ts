@@ -5,11 +5,6 @@ import { getStorage } from "firebase-admin/storage";
 import { firebase } from "lib/firebaseServer";
 import sharp from "sharp";
 
-const firebaseApp = firebase();
-const auth = getAuth(firebaseApp);
-const db = getDatabase(firebaseApp);
-const storage = getStorage(firebaseApp);
-
 async function urlToFile(
   url: string,
   filename: string,
@@ -44,6 +39,9 @@ async function uploadProfilePicture(
   buffer: Buffer,
   userId: string
 ): Promise<string> {
+  const firebaseApp = firebase();
+  const storage = getStorage(firebaseApp);
+
   const bucket = storage.bucket();
   const imagePath = `users/${userId}/profile_picture.webp`;
   const fileRef = bucket.file(imagePath);
@@ -57,6 +55,10 @@ async function uploadProfilePicture(
 }
 
 export async function POST(req: NextRequest) {
+  const firebaseApp = firebase();
+  const auth = getAuth(firebaseApp);
+  const db = getDatabase(firebaseApp);
+
   const authHeader = req.headers.get("authorization");
   if (!authHeader?.startsWith("Bearer ")) {
     return NextResponse.json(
@@ -94,6 +96,10 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+  const firebaseApp = firebase();
+  const auth = getAuth(firebaseApp);
+  const db = getDatabase(firebaseApp);
+
   const authHeader = req.headers.get("authorization");
   if (!authHeader?.startsWith("Bearer ")) {
     return NextResponse.json(

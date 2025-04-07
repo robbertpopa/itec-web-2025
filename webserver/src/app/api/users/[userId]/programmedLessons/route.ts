@@ -3,14 +3,14 @@ import { getAuth } from "firebase-admin/auth";
 import { firebase } from "lib/firebaseServer";
 import { getDatabase } from "firebase-admin/database";
 
-const firebaseApp = firebase();
-const auth = getAuth(firebaseApp);
-const db = getDatabase(firebaseApp);
-
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
+  const firebaseApp = firebase();
+  const auth = getAuth(firebaseApp);
+  const db = getDatabase(firebaseApp);
+
   const { userId } = await params;
   const authHeader = req.headers.get("authorization");
   if (!authHeader?.startsWith("Bearer ")) {
@@ -87,6 +87,10 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
+  const firebaseApp = firebase();
+  const auth = getAuth(firebaseApp);
+  const db = getDatabase(firebaseApp);
+
   const { userId } = await params;
   const authHeader = req.headers.get("authorization");
   if (!authHeader?.startsWith("Bearer ")) {
