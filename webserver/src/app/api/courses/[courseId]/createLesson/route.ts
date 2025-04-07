@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { firebase } from "lib/firebaseServer";
 import { getDatabase } from "firebase-admin/database";
 
-
 export async function POST(req: NextRequest) {
   const firebaseApp = firebase();
   const db = getDatabase(firebaseApp);

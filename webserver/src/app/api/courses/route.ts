@@ -69,12 +69,15 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    await firebase().database().ref(`/courses/${courseId}`).set({
-      name: fields.name,
-      description: fields.description || "",
-      ownerId: userId,
-      createdAt: new Date().toISOString(),
-    });
+    await firebase()
+      .database()
+      .ref(`/courses/${courseId}`)
+      .set({
+        name: fields.name,
+        description: fields.description || "",
+        ownerId: userId,
+        createdAt: new Date().toISOString(),
+      });
 
     return NextResponse.json(
       { success: true, courseId, message: "Course created successfully" },

@@ -4,7 +4,6 @@ import { firebase } from "lib/firebaseServer";
 import { getDatabase } from "firebase-admin/database";
 import { v4 as uuidv4 } from "uuid";
 
-
 export async function POST(
   req: NextRequest,
   {
