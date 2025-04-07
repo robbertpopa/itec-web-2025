@@ -22,5 +22,7 @@ export default function useRequireEmailVerified() {
     });
 
     return () => unsubscribe();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 }

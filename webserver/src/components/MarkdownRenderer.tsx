@@ -13,15 +13,18 @@ interface MarkdownRendererProps {
 export default function MarkdownRenderer({ markdown, className = "" }: MarkdownRendererProps) {
     const ref = useRef<HTMLDivElement>(null);
 
-    useEffect(() => { handleMardownChange() }, [markdown])
+    useEffect(() => { 
+        const handleMarkdownChange = async () => {
+            if (!ref.current)
+                return;
 
-    const handleMardownChange = async () => {
-        if (!ref.current)
-            return;
+            ref.current.innerHTML =
+                DOMPurify.sanitize(await marked.parse(markdown))
+        }
 
-        ref.current.innerHTML =
-            DOMPurify.sanitize(await marked.parse(markdown))
-    }
+        handleMarkdownChange() 
+    }, [markdown])
+
 
     return <div ref={ref} className={`markdown-body ${className}`}></div>
 }
