@@ -36,7 +36,7 @@ export default function Page() {
 
     try {
       const userCredential = await createUserWithEmailAndPassword(
-        auth,
+        auth(),
         email,
         password
       );
@@ -44,7 +44,7 @@ export default function Page() {
       if (user) {
         await sendEmailVerification(user);
 
-        set(ref(db, "users/" + user?.uid), {
+        set(ref(db(), "users/" + user?.uid), {
           fullName: full_name,
           profilePicture: null,
           createdAt: new Date().toISOString(),
@@ -61,13 +61,13 @@ export default function Page() {
 
   const handleGoogleRegister = async () => {
     try {
-      const result = await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth(), googleProvider());
       const user = result.user;
       full_name = user.displayName || "";
 
       if (user) {
         try {
-          const token = await auth?.currentUser?.getIdToken();
+          const token = await auth()?.currentUser?.getIdToken();
 
           const formData = new FormData();
           formData.append("full_name", full_name);

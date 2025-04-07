@@ -19,7 +19,7 @@ export default function Page() {
 
     try {
       const userCredentials = await signInWithEmailAndPassword(
-        auth,
+        auth(),
         email,
         password
       );
@@ -42,16 +42,16 @@ export default function Page() {
   };
 
   const handleGoogleLogin = async () => {
-    const result = await signInWithPopup(auth, googleProvider);
+    const result = await signInWithPopup(auth(), googleProvider());
 
     const user = result.user;
     if (user) {
-      const userRef = ref(db, "users/" + user.uid);
+      const userRef = ref(db(), "users/" + user.uid);
       const snapshot = await get(userRef);
 
       if (!snapshot.exists()) {
         try {
-          const token = await auth?.currentUser?.getIdToken();
+          const token = await auth()?.currentUser?.getIdToken();
 
           const formData = new FormData();
           formData.append("full_name", user.displayName || "");

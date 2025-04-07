@@ -9,7 +9,7 @@ export default function useRedirectIfAuthenticated() {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth(), (user) => {
       if (user) {
         router.push("/");
       }

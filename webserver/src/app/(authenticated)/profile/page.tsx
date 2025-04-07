@@ -31,13 +31,13 @@ export default function Page() {
   };
 
   const handleLogout = async () => {
-    await signOut(auth);
+    await signOut(auth());
     router.push("/login");
   };
 
   const handleUpdateUserProfile = async () => {
-    const user = auth.currentUser;
-    update(ref(db, "users/" + user?.uid), {
+    const user = auth().currentUser;
+    update(ref(db(), "users/" + user?.uid), {
       fullName,
     });
 
@@ -95,11 +95,11 @@ export default function Page() {
             onChange={async (e) => {
               const file = e.target.files?.[0];
               if (file) {
-                const token = await auth?.currentUser?.getIdToken();
+                const token = await auth()?.currentUser?.getIdToken();
                 const formData = new FormData();
                 formData.append("image", file);
                 const response = await fetch(
-                  "/api/users/" + auth?.currentUser?.uid,
+                  "/api/users/" + auth()?.currentUser?.uid,
                   {
                     method: "POST",
                     headers: {

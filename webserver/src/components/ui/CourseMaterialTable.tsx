@@ -53,7 +53,7 @@ export default function CourseMaterialTable({
           "summarized"
         );
         try {
-          await getDownloadURL(storageRef(storage, summarizedFilePath));
+          await getDownloadURL(storageRef(storage(), summarizedFilePath));
           setSummarizedMap((prev) => ({
             ...prev,
             [file.name]: true,
@@ -118,7 +118,7 @@ export default function CourseMaterialTable({
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const token = await auth.currentUser?.getIdToken();
+      const token = await auth().currentUser?.getIdToken();
       const formData = new FormData();
       formData.append("courseId", courseId);
       formData.append("lessonIndex", lessonIndex);
@@ -154,14 +154,14 @@ export default function CourseMaterialTable({
 
       try {
         const url = await getDownloadURL(
-          storageRef(storage, summarizedFilePath)
+          storageRef(storage(), summarizedFilePath)
         );
         showNotification("Summarized file found. Downloading...", "success");
         window.open(url, "_blank");
         return;
       } catch {}
 
-      const token = await auth.currentUser?.getIdToken();
+      const token = await auth().currentUser?.getIdToken();
       const apiUrl = `/api/courses/${courseId}/${lessonIndex}/${encodeURIComponent(fileFullPath)}`;
       const response = await fetch(apiUrl, {
         method: "POST",

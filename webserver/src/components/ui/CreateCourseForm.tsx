@@ -55,7 +55,7 @@ export default function CreateCourseForm({
       return;
     }
 
-    if (!auth.currentUser) {
+    if (!auth().currentUser) {
       setError("You must be logged in to create a course");
       return;
     }
@@ -64,7 +64,7 @@ export default function CreateCourseForm({
     setError(null);
 
     try {
-      const token = await auth.currentUser.getIdToken();
+      const token = await auth().currentUser?.getIdToken();
 
       const formData = new FormData();
       formData.append("name", name);

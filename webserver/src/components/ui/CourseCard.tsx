@@ -58,7 +58,7 @@ export default function CourseCard({
       const fetchUserData = async () => {
         setLoading(true);
         try {
-          const token = await auth.currentUser?.getIdToken();
+          const token = await auth().currentUser?.getIdToken();
           const response = await fetch(`/api/users?userId=${courseOwnerId}`, {
             method: "GET",
             headers: {

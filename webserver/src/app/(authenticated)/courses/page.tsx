@@ -19,7 +19,7 @@ export default function Page() {
   const fetchCourses = async (page: number = 1) => {
     setLoading(true);
     try {
-      const dbReference = dbRef(db);
+      const dbReference = dbRef(db());
 
       const totalCountSnapshot = await get(child(dbReference, "/courses"));
       if (totalCountSnapshot.exists()) {
@@ -52,7 +52,7 @@ export default function Page() {
               let imageUrl;
               try {
                 const imageRef = storageRef(
-                  storage,
+                  storage(),
                   `courses/${course.id}/cover.webp`
                 );
                 imageUrl = await getDownloadURL(imageRef);

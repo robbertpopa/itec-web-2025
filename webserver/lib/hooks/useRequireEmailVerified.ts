@@ -11,11 +11,11 @@ export default function useRequireEmailVerified() {
   const { showNotification } = useNotification();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth(), async (user) => {
       if (!user) {
         router.push("/login");
       } else if (!user.emailVerified) {
-        await signOut(auth);
+        await signOut(auth());
         showNotification(
           "You need to verify you account before login into your account.",
           "error"

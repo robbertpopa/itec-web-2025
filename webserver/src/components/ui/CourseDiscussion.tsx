@@ -29,7 +29,7 @@ export default function CourseDiscussion({ id }: { id: string }) {
       try {
         setLoading(true);
 
-        const courseRef = ref(db, `courses/${id}`);
+        const courseRef = ref(db(), `courses/${id}`);
         const courseSnapshot = await get(courseRef);
 
         if (courseSnapshot.exists()) {
@@ -37,7 +37,7 @@ export default function CourseDiscussion({ id }: { id: string }) {
           setCourseOwnerId(courseData.ownerId);
         }
 
-        const commentsRef = ref(db, `discussions/${id}`);
+        const commentsRef = ref(db(), `discussions/${id}`);
         const commentsSnapshot = await get(commentsRef);
 
         if (!commentsSnapshot.exists()) {
@@ -52,7 +52,7 @@ export default function CourseDiscussion({ id }: { id: string }) {
           async (commentId) => {
             const commentFields = commentsData[commentId];
 
-            const userRef = ref(db, `users/${commentFields.userId}`);
+            const userRef = ref(db(), `users/${commentFields.userId}`);
             const userSnapshot = await get(userRef);
             let userName = "";
             let profilePicture = "";
@@ -97,7 +97,7 @@ export default function CourseDiscussion({ id }: { id: string }) {
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    const user = auth.currentUser;
+    const user = auth().currentUser;
     if (!newComment.trim() || !user) return;
 
     try {
@@ -167,7 +167,7 @@ export default function CourseDiscussion({ id }: { id: string }) {
             </div>
           )}
 
-          {auth.currentUser && (
+          {auth().currentUser && (
             <div className="mt-6">
               <form onSubmit={handleSubmitComment}>
                 <div className="flex flex-col gap-4">
@@ -193,7 +193,7 @@ export default function CourseDiscussion({ id }: { id: string }) {
             </div>
           )}
 
-          {!auth.currentUser && (
+          {!auth().currentUser && (
             <div className="mt-6 p-4 bg-base-200 rounded-md text-center">
               <p>Sign in to join the discussion</p>
             </div>

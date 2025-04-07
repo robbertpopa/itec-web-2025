@@ -45,7 +45,7 @@ export default function CourseDetails({
   useEffect(() => {
     const checkEnrollmentStatus = async () => {
       try {
-        const token = await auth.currentUser?.getIdToken();
+        const token = await auth().currentUser?.getIdToken();
         if (!token) {
           setIsCheckingEnrollment(false);
           return;
@@ -93,7 +93,7 @@ export default function CourseDetails({
     const lessonIndex = course.lessons ? course.lessons.length : 0;
 
     try {
-      const token = await auth.currentUser?.getIdToken();
+      const token = await auth().currentUser?.getIdToken();
       const response = await fetch(`/api/courses/${course.id}/createLesson`, {
         method: "POST",
         headers: {
@@ -122,7 +122,7 @@ export default function CourseDetails({
   const handleEnrollment = async () => {
     try {
       setIsLoading(true);
-      const token = await auth.currentUser?.getIdToken();
+      const token = await auth().currentUser?.getIdToken();
 
       if (!token) {
         showNotification(
@@ -162,7 +162,7 @@ export default function CourseDetails({
   const handleUnenroll = async () => {
     try {
       setIsLoading(true);
-      const token = await auth.currentUser?.getIdToken();
+      const token = await auth().currentUser?.getIdToken();
 
       if (!token) {
         showNotification(

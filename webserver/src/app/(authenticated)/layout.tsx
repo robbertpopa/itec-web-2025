@@ -42,9 +42,9 @@ export default function AuthenticatedLayout({
   useEffect(() => {}, [userData?.profilePicture]);
 
   useEffect(() => {
-    const unsubscribe = auth.onIdTokenChanged(async (user) => {
+    const unsubscribe = auth().onIdTokenChanged(async (user) => {
       if (user) {
-        const userRef = ref(db, `users/${user.uid}`);
+        const userRef = ref(db(), `users/${user.uid}`);
         const snapshot = await get(userRef);
         setUserData(snapshot.val() ? { ...snapshot.val() } : null);
       }

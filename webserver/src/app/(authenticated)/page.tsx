@@ -51,13 +51,13 @@ export default function Page() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const user = auth.currentUser;
+        const user = auth().currentUser;
         if (!user) return;
 
         setLoading(true);
 
         try {
-          const dbReference = dbRef(db);
+          const dbReference = dbRef(db());
           const programmedLessonsRef = child(
             dbReference,
             `users/${user.uid}/programmedLessons`
@@ -76,7 +76,7 @@ export default function Page() {
         }
 
         try {
-          const dbReference = dbRef(db);
+          const dbReference = dbRef(db());
           const recentCoursesRef = query(
             child(dbReference, "courses"),
             orderByChild("createdAt"),
@@ -101,7 +101,7 @@ export default function Page() {
                   let imageUrl;
                   try {
                     const imageRef = storageRef(
-                      storage,
+                      storage(),
                       `courses/${course.id}/cover.webp`
                     );
                     imageUrl = await getDownloadURL(imageRef);
@@ -159,7 +159,7 @@ export default function Page() {
         }
 
         try {
-          const dbReference = dbRef(db);
+          const dbReference = dbRef(db());
           const enrollmentsRef = child(
             dbReference,
             `users/${user.uid}/enrollments`
@@ -181,7 +181,7 @@ export default function Page() {
                     let imageUrl;
                     try {
                       const imageRef = storageRef(
-                        storage,
+                        storage(),
                         `courses/${courseId}/cover.webp`
                       );
                       imageUrl = await getDownloadURL(imageRef);
@@ -278,7 +278,7 @@ export default function Page() {
 
   const handleMarkDay = async (date: Date, isMarked: boolean) => {
     try {
-      const user = auth.currentUser;
+      const user = auth().currentUser;
       if (!user) {
         showNotification("You must be logged in to mark days", "error");
         return;
