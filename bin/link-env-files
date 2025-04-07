@@ -4,6 +4,3 @@ cd "$(dirname "$0")/.."
 
 ln -sn "$(pwd)/.env" "webserver/.env.local"
 ln -sn "$(pwd)/.env" "jobs/.env"
-
-ln -sn "$(pwd)/.firebase-service-account.json" "webserver/.firebase-service-account.json"
-ln -sn "$(pwd)/.firebase-service-account.json" "jobs/.firebase-service-account.json"
