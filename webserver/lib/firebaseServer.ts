@@ -8,7 +8,7 @@ function getFirebaseAdmin() {
     return admin.initializeApp({
       ...firebaseConfig,
       credential: admin.credential.cert(
-          JSON.parse(atob(process.env.NEXT_PUBLIC_SERVICE_ACCOUNT ?? ""))
+        JSON.parse(atob(process.env.NEXT_PUBLIC_SERVICE_ACCOUNT ?? ""))
       ),
     });
   }
