@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -11,16 +11,21 @@ export default function useRequireEmailVerified() {
   const { showNotification } = useNotification();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth(), async (user) => {
       if (!user) {
         router.push("/login");
       } else if (!user.emailVerified) {
-        await signOut(auth);
-        showNotification('You need to verify you account before login into your account.', 'error');
+        await signOut(auth());
+        showNotification(
+          "You need to verify you account before login into your account.",
+          "error"
+        );
         router.push("/login");
       }
     });
 
     return () => unsubscribe();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 }

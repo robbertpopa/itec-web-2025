@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import cn from 'lib/utils/cn';
-import { X } from 'lucide-react';
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import cn from "lib/utils/cn";
+import { X } from "lucide-react";
 
 interface ModalProps {
   isOpen: boolean;
@@ -11,50 +11,56 @@ interface ModalProps {
   className?: string;
 }
 
-export default function Modal({ isOpen, onClose, title, children, className }: ModalProps) {
+export default function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  className,
+}: ModalProps) {
   const [mounted, setMounted] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
-  
+
   useEffect(() => {
     setMounted(true);
-    
+
     if (isOpen) {
-      document.body.classList.add('overflow-hidden');
+      document.body.classList.add("overflow-hidden");
     }
-    
+
     return () => {
-      document.body.classList.remove('overflow-hidden');
+      document.body.classList.remove("overflow-hidden");
     };
   }, [isOpen]);
-  
+
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (overlayRef.current === e.target) {
       onClose();
     }
   };
-  
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (isOpen && e.key === 'Escape') {
+      if (isOpen && e.key === "Escape") {
         onClose();
       }
     };
-    
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
+
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
-  
+
   if (!mounted || !isOpen) return null;
-  
+
   return createPortal(
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-base-300/40 backdrop-blur-sm p-4"
       ref={overlayRef}
       onClick={handleOverlayClick}
       aria-modal="true"
       role="dialog"
     >
-      <div 
+      <div
         className={cn(
           "bg-base-100 rounded-lg shadow-xl max-h-[90vh] w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 border border-base-300",
           className
@@ -63,7 +69,7 @@ export default function Modal({ isOpen, onClose, title, children, className }: M
       >
         <div className="flex justify-between items-center p-4 !pb-0">
           <h2 className="text-lg font-semibold text-base-content">{title}</h2>
-          <button 
+          <button
             onClick={onClose}
             className="rounded-full p-1 hover:bg-base-200 transition-colors"
             aria-label="Close modal"

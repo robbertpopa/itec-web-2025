@@ -1,101 +1,106 @@
-import { useState, useRef } from 'react';
-import { auth } from 'lib/firebase';
-import { Check, Upload } from 'lucide-react';
+import { useState, useRef } from "react";
+import { auth } from "lib/firebase";
+import { Check, Upload } from "lucide-react";
 
 interface CreateCourseFormProps {
   onClose: () => void;
   onSuccess?: (courseId: string) => void;
 }
 
-export default function CreateCourseForm({ onClose, onSuccess }: CreateCourseFormProps) {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+export default function CreateCourseForm({
+  onClose,
+  onSuccess,
+}: CreateCourseFormProps) {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     if (!file.type.match(/image\/(jpeg|jpg|png|webp)/)) {
-      setError('Please select a valid image file (JPEG, PNG, or WebP)');
+      setError("Please select a valid image file (JPEG, PNG, or WebP)");
       return;
     }
-    
+
     if (file.size > 5 * 1024 * 1024) {
-      setError('Image file is too large. Please select an image under 5MB.');
+      setError("Image file is too large. Please select an image under 5MB.");
       return;
     }
-    
+
     setError(null);
     setImage(file);
-    
+
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result as string);
     };
     reader.readAsDataURL(file);
   };
-  
+
   const triggerFileUpload = () => {
     fileInputRef.current?.click();
   };
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!name.trim()) {
-      setError('Course name is required');
+      setError("Course name is required");
       return;
     }
 
-    if (!auth.currentUser) {
-      setError('You must be logged in to create a course');
+    if (!auth().currentUser) {
+      setError("You must be logged in to create a course");
       return;
     }
-    
+
     setIsSubmitting(true);
     setError(null);
-    
+
     try {
-      const token = await auth.currentUser.getIdToken();
-      
+      const token = await auth().currentUser?.getIdToken();
+
       const formData = new FormData();
-      formData.append('name', name);
-      formData.append('description', description);
+      formData.append("name", name);
+      formData.append("description", description);
       if (image) {
-        formData.append('image', image);
+        formData.append("image", image);
       }
-      
-      const response = await fetch('/api/courses', {
-        method: 'POST',
+
+      const response = await fetch("/api/courses", {
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create course');
+        throw new Error(data.error || "Failed to create course");
       }
-      
+
       if (onSuccess && data.courseId) {
         onSuccess(data.courseId);
       }
       onClose();
     } catch (err) {
-      console.error('Error creating course:', err);
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      console.error("Error creating course:", err);
+      setError(
+        err instanceof Error ? err.message : "An unknown error occurred"
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
@@ -103,18 +108,18 @@ export default function CreateCourseForm({ onClose, onSuccess }: CreateCourseFor
           {error}
         </div>
       )}
-      
+
       <div className="space-y-2">
         {/* <label className="block text-sm font-medium">Course Image</label> */}
-        <div 
+        <div
           className="border-2 border-dashed border-neutral-300 rounded-lg p-4 text-center cursor-pointer hover:bg-neutral-50 transition-colors"
           onClick={triggerFileUpload}
         >
           {imagePreview ? (
             <div className="relative aspect-video max-w-full mx-auto">
-              <img 
-                src={imagePreview} 
-                alt="Course preview" 
+              <img
+                src={imagePreview}
+                alt="Course preview"
                 className="object-cover rounded-lg max-h-[200px] mx-auto"
               />
               <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-lg">
@@ -141,9 +146,12 @@ export default function CreateCourseForm({ onClose, onSuccess }: CreateCourseFor
           />
         </div>
       </div>
-      
+
       <div className="space-y-2">
-        <label htmlFor="name" className="block text-sm font-medium floating-label">
+        <label
+          htmlFor="name"
+          className="block text-sm font-medium floating-label"
+        >
           <span> Course Title</span>
           <input
             id="name"
@@ -153,12 +161,15 @@ export default function CreateCourseForm({ onClose, onSuccess }: CreateCourseFor
             placeholder="Enter course title"
             className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
             required
-            />
+          />
         </label>
       </div>
-      
+
       <div className="space-y-2">
-        <label htmlFor="description" className="block text-sm font-medium floating-label">
+        <label
+          htmlFor="description"
+          className="block text-sm font-medium floating-label"
+        >
           <span>Course Description</span>
           <textarea
             id="description"
@@ -167,10 +178,10 @@ export default function CreateCourseForm({ onClose, onSuccess }: CreateCourseFor
             placeholder="Enter course description"
             rows={4}
             className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-            />
+          />
         </label>
       </div>
-      
+
       <div className="flex justify-end space-x-3 pt-4">
         <button
           type="button"

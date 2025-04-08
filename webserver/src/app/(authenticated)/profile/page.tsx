@@ -13,7 +13,10 @@ function getInitials(name: string): string {
   if (!name) return "";
   const parts = name.trim().split(" ");
   if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-  return parts[0].charAt(0).toUpperCase() + parts[parts.length - 1].charAt(0).toUpperCase();
+  return (
+    parts[0].charAt(0).toUpperCase() +
+    parts[parts.length - 1].charAt(0).toUpperCase()
+  );
 }
 
 export default function Page() {
@@ -28,14 +31,14 @@ export default function Page() {
   };
 
   const handleLogout = async () => {
-    await signOut(auth);
+    await signOut(auth());
     router.push("/login");
   };
 
   const handleUpdateUserProfile = async () => {
-    const user = auth.currentUser;
-    update(ref(db, 'users/' + user?.uid), {
-      fullName
+    const user = auth().currentUser;
+    update(ref(db(), "users/" + user?.uid), {
+      fullName,
     });
 
     if (userProfile) {
@@ -44,7 +47,7 @@ export default function Page() {
 
     showNotification("User profile updated succesfully!");
     router.refresh();
-  }
+  };
 
   useEffect(() => {
     if (userProfile?.fullName) {
@@ -72,7 +75,9 @@ export default function Page() {
                   />
                 ) : (
                   <div className="bg-neutral-focus text-neutral-content rounded-full w-40 h-40 flex items-center justify-center">
-                    <span className="text-5xl">{getInitials(userProfile.fullName)}</span>
+                    <span className="text-5xl">
+                      {getInitials(userProfile.fullName)}
+                    </span>
                   </div>
                 )}
               </div>
@@ -90,11 +95,11 @@ export default function Page() {
             onChange={async (e) => {
               const file = e.target.files?.[0];
               if (file) {
-                const token = await auth?.currentUser?.getIdToken();
+                const token = await auth()?.currentUser?.getIdToken();
                 const formData = new FormData();
                 formData.append("image", file);
                 const response = await fetch(
-                  "/api/users/" + auth?.currentUser?.uid,
+                  "/api/users/" + auth()?.currentUser?.uid,
                   {
                     method: "POST",
                     headers: {
@@ -121,16 +126,20 @@ export default function Page() {
         <div className="card-body">
           <div className="flex flex-row gap-2">
             <label className="floating-label">
-                <input
+              <input
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Full name"
                 className="input input-md"
-                />
+              />
               <span>Full name</span>
             </label>
-            <button onClick={handleUpdateUserProfile} className="btn" disabled={!fullName}>
+            <button
+              onClick={handleUpdateUserProfile}
+              className="btn"
+              disabled={!fullName}
+            >
               <Check></Check>
             </button>
           </div>

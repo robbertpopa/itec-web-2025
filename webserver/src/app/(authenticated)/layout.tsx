@@ -10,7 +10,7 @@ import CreateCourseForm from "@/components/ui/CreateCourseForm";
 import React, { createContext, useEffect, useState } from "react";
 import { get, ref } from "firebase/database";
 import { auth, db } from "lib/firebase";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 
 interface UserData {
   fullName: string;
@@ -23,22 +23,28 @@ function getInitials(name: string): string {
   if (!name) return "";
   const parts = name.trim().split(" ");
   if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-  return parts[0].charAt(0).toUpperCase() + parts[parts.length - 1].charAt(0).toUpperCase();
+  return (
+    parts[0].charAt(0).toUpperCase() +
+    parts[parts.length - 1].charAt(0).toUpperCase()
+  );
 }
 
-export default function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
+export default function AuthenticatedLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   useRequireEmailVerified();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
   const [userData, setUserData] = useState<UserData | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-  }, [userData?.profilePicture]);
+  useEffect(() => {}, [userData?.profilePicture]);
 
   useEffect(() => {
-    const unsubscribe = auth.onIdTokenChanged(async (user) => {
+    const unsubscribe = auth().onIdTokenChanged(async (user) => {
       if (user) {
-        const userRef = ref(db, `users/${user.uid}`);
+        const userRef = ref(db(), `users/${user.uid}`);
         const snapshot = await get(userRef);
         setUserData(snapshot.val() ? { ...snapshot.val() } : null);
       }
@@ -147,7 +153,9 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
                       </>
                     ) : (
                       <div className="w-10 h-10 bg-neutral-focus text-neutral-content rounded-full flex items-center justify-center">
-                        <span className="text-sm">{getInitials(userData.fullName)}</span>
+                        <span className="text-sm">
+                          {getInitials(userData.fullName)}
+                        </span>
                       </div>
                     )}
                   </div>

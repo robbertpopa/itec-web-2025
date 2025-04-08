@@ -36,7 +36,9 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <NotificationContext.Provider value={{ message, variant, showNotification }}>
+    <NotificationContext.Provider
+      value={{ message, variant, showNotification }}
+    >
       {children}
       {message && (
         <div

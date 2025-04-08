@@ -25,6 +25,7 @@
     "marked": "^15.0.7",
     "next": "15.2.4",
     "next-connect": "^1.0.0",
+    "next-runtime-env": "^3.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "sharp": "0.32.0",
@@ -35,12 +36,15 @@
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
-    "@types/react": "^19",
+    "@types/react": "19.1.0",
     "@types/react-dom": "^19",
     "daisyui": "^5.0.12",
     "eslint": "^9",
     "eslint-config-next": "15.2.4",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-prettier": "^5.2.6",
+    "prettier": "^3.5.3",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "5.8.3"
   }
 }

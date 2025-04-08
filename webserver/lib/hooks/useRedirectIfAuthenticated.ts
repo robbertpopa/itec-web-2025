@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -9,7 +9,7 @@ export default function useRedirectIfAuthenticated() {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth(), (user) => {
       if (user) {
         router.push("/");
       }

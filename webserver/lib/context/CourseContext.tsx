@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import CoursePreview from '../models/coursePreview';
+import React, { createContext, useContext, useState, ReactNode } from "react";
+import CoursePreview from "../models/coursePreview";
 
 interface CourseContextType {
   courses: CoursePreview[];
@@ -26,7 +26,7 @@ export function CourseProvider({ children }: { children: ReactNode }) {
 export function useCourses() {
   const context = useContext(CourseContext);
   if (context === undefined) {
-    throw new Error('useCourses must be used within a CourseProvider');
+    throw new Error("useCourses must be used within a CourseProvider");
   }
   return context;
 }

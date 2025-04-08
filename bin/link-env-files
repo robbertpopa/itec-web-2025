@@ -1,0 +1,6 @@
+#!/bin/bash
+
+cd "$(dirname "$0")/.."
+
+ln -sn "$(pwd)/.env" "webserver/.env.local"
+ln -sn "$(pwd)/.env" "jobs/.env"
