@@ -15,6 +15,8 @@ export default function CreateCourseForm({
   const [description, setDescription] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState("");
+  const [recurrence, setRecurrence] = useState("once");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -69,6 +71,8 @@ export default function CreateCourseForm({
       const formData = new FormData();
       formData.append("name", name);
       formData.append("description", description);
+      formData.append("startDate", startDate);
+      formData.append("recurrence", recurrence);
       if (image) {
         formData.append("image", image);
       }
@@ -179,6 +183,32 @@ export default function CreateCourseForm({
             rows={4}
             className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           />
+        </label>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-sm font-medium floating-label">
+          <span>Start Date &amp; Time</span>
+          <input
+            type="datetime-local"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          />
+        </label>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-sm font-medium">
+          Occurrence
+          <select
+            className="select select-bordered w-full mt-1"
+            value={recurrence}
+            onChange={(e) => setRecurrence(e.target.value)}
+          >
+            <option value="once">One Time</option>
+            <option value="weekly">Weekly</option>
+          </select>
         </label>
       </div>
 

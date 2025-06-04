@@ -137,8 +137,23 @@ export default function CourseDiscussion({ id }: { id: string }) {
       <h2 className="text-lg font-semibold mb-4 pb-2 border-b">Discussion</h2>
 
       {loading ? (
-        <div className="flex justify-center my-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="space-y-4">
+          {Array(2)
+            .fill(0)
+            .map((_, i) => (
+              <div
+                key={`comment-skeleton-${i}`}
+                className="card card-border p-4 mb-4"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-neutral-200 animate-pulse" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-1/4 bg-neutral-200 animate-pulse" />
+                    <div className="h-4 w-3/4 bg-neutral-100 animate-pulse" />
+                  </div>
+                </div>
+              </div>
+            ))}
         </div>
       ) : error ? (
         <div className="bg-red-50 p-4 rounded-md text-red-600">{error}</div>

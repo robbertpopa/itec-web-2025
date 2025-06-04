@@ -5,7 +5,8 @@ import CourseDiscussion from "./CourseDiscussion";
 import { Calendar, Heart, Share2 } from "lucide-react";
 import { useNotification } from "lib/context/NotificationContext";
 import { useState, useEffect } from "react";
-import { auth } from "lib/firebase";
+import { auth, db } from "lib/firebase";
+import { ref, get } from "firebase/database";
 import Modal from "./Modal";
 import { useRouter } from "next/navigation";
 
@@ -29,6 +30,7 @@ export default function CourseDetails({
     name: string;
     description?: string;
     lessons?: string[];
+    ownerId: string;
   };
   owner: { displayName?: string; profilePicture?: string };
   imageUrl: string | null;
@@ -38,9 +40,76 @@ export default function CourseDetails({
   const [newLessonName, setNewLessonName] = useState("");
   const [liked, setLiked] = useState(false);
   const router = useRouter();
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+  const [isOwner, setIsOwner] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingEnrollment, setIsCheckingEnrollment] = useState(true);
+  const [inviteId, setInviteId] = useState("");
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [participants, setParticipants] = useState<
+    { id: string; fullName: string; profilePicture: string }[]
+  >([]);
+  const [participantsLoading, setParticipantsLoading] = useState(true);
+
+  const fetchParticipants = async () => {
+    setParticipantsLoading(true);
+    try {
+      const token = await auth().currentUser?.getIdToken();
+      if (!token) return;
+      const response = await fetch(`/api/courses/${course.id}/participants`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setParticipants(data.participants || []);
+      }
+    } catch (error) {
+      console.error("Error loading participants:", error);
+    } finally {
+      setParticipantsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchParticipants();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [course.id]);
+
+  useEffect(() => {
+    const verifyAccess = async () => {
+      const user = auth().currentUser;
+      if (!user) {
+        setHasAccess(false);
+        router.push("/courses");
+        return;
+      }
+      if (user.uid === course.ownerId) {
+        setHasAccess(true);
+        setIsOwner(true);
+        return;
+      }
+
+      try {
+        const invitationRef = ref(
+          db(),
+          `/courses/${course.id}/invitedUsers/${user.uid}`
+        );
+        const snapshot = await get(invitationRef);
+        if (snapshot.exists()) {
+          setHasAccess(true);
+        } else {
+          setHasAccess(false);
+          router.push("/courses");
+        }
+      } catch {
+        setHasAccess(false);
+        router.push("/courses");
+      }
+    };
+
+    verifyAccess();
+  }, [course.id, course.ownerId, router]);
 
   useEffect(() => {
     const checkEnrollmentStatus = async () => {
@@ -144,6 +213,7 @@ export default function CourseDetails({
       if (response.ok) {
         setIsEnrolled(true);
         showNotification("Successfully enrolled in the course!", "success");
+        fetchParticipants();
       } else {
         const error = await response.json();
         showNotification(
@@ -184,6 +254,7 @@ export default function CourseDetails({
       if (response.ok) {
         setIsEnrolled(false);
         showNotification("Successfully unenrolled from the course", "success");
+        fetchParticipants();
       } else {
         const error = await response.json();
         showNotification(
@@ -198,6 +269,45 @@ export default function CourseDetails({
       setIsLoading(false);
     }
   };
+
+  const handleInvite = async () => {
+    if (!inviteId.trim()) return;
+    try {
+      setInviteLoading(true);
+      const token = await auth().currentUser?.getIdToken();
+      const response = await fetch(`/api/courses/${course.id}/invite`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId: inviteId.trim() }),
+      });
+      if (response.ok) {
+        showNotification("User invited", "success");
+        setInviteId("");
+        fetchParticipants();
+      } else {
+        const err = await response.json();
+        showNotification(err.error || "Failed to invite", "error");
+      }
+    } catch {
+      showNotification("Failed to invite", "error");
+    } finally {
+      setInviteLoading(false);
+    }
+  };
+
+  if (hasAccess === null) {
+    return (
+      <div className="p-12 flex justify-center">
+        <span className="loading loading-spinner" />
+      </div>
+    );
+  }
+  if (!hasAccess) {
+    return <div className="p-12">You do not have access to this course.</div>;
+  }
 
   return (
     <>
@@ -381,29 +491,65 @@ export default function CourseDetails({
                 />
                 {liked ? "Liked" : "Like"}
               </button>
-            </div>
           </div>
+        </div>
 
-          <div className="card flex flex-col rounded-lg shadow-md w-full p-6 h-fit gap-6">
-            <h2 className="text-xl font-semibold">Participants (10)</h2>
+        {isOwner && (
+          <div className="card flex flex-col rounded-lg shadow-md w-full p-6 gap-4">
+            <h2 className="text-xl font-semibold">Invite Participant</h2>
+            <input
+              type="text"
+              className="input input-bordered w-full"
+              placeholder="User ID"
+              value={inviteId}
+              onChange={(e) => setInviteId(e.target.value)}
+            />
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleInvite}
+              disabled={inviteLoading || !inviteId.trim()}
+            >
+              {inviteLoading ? "Inviting..." : "Send Invite"}
+            </button>
+          </div>
+        )}
+
+        <div className="card flex flex-col rounded-lg shadow-md w-full p-6 h-fit gap-6">
+          <h2 className="text-xl font-semibold">Participants ({participants.length})</h2>
+          {participantsLoading ? (
+            <div className="flex justify-center p-4">
+              <span className="loading loading-spinner" />
+            </div>
+          ) : (
             <div className="avatar-group -space-x-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="avatar">
-                  <div className="w-10 rounded-full">
-                    <img
-                      src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-                      alt={`Participant ${i}`}
-                    />
+              {participants.slice(0, 7).map((p) => (
+                <div key={p.id} className="avatar">
+                  <div className="w-10 h-10 rounded-full overflow-hidden">
+                    {p.profilePicture ? (
+                      <img
+                        src={`${p.profilePicture}?t=${new Date().getTime()}`}
+                        alt={p.fullName}
+                        className="object-cover w-full h-full"
+                      />
+                    ) : (
+                      <div className="bg-neutral-focus text-neutral-content rounded-full w-10 h-10 flex items-center justify-center">
+                        <span className="text-sm">{getInitials(p.fullName)}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
-              <div className="avatar avatar-placeholder">
-                <div className="w-10 bg-neutral text-neutral-content">
-                  <span>+7</span>
+              {participants.length > 7 && (
+                <div className="avatar placeholder">
+                  <div className="w-10 bg-neutral text-neutral-content">
+                    <span>+{participants.length - 7}</span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
-          </div>
+          )}
+        </div>
         </div>
       </div>
 
