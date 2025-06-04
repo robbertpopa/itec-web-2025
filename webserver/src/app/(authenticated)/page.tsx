@@ -69,8 +69,8 @@ export default function Page() {
 
           if (response.ok) {
             const data = await response.json();
-            const markedDays = data.programmedLessons.map((l: any) =>
-              new Date(l.date)
+            const markedDays = data.programmedLessons.map(
+              (l: any) => new Date(l.date)
             );
             setMarkedLearningDays(markedDays);
             events.push(
@@ -177,8 +177,8 @@ export default function Page() {
           );
           const enrollmentsSnapshot = await get(enrollmentsRef);
 
-            if (enrollmentsSnapshot.exists()) {
-              const enrollments = enrollmentsSnapshot.val();
+          if (enrollmentsSnapshot.exists()) {
+            const enrollments = enrollmentsSnapshot.val();
 
             const enrolledCoursesPromises = Object.keys(enrollments).map(
               async (courseId) => {
@@ -267,9 +267,9 @@ export default function Page() {
                   courseId: course.id,
                 });
               }
-              });
-            }
-            setCalendarEvents(events);
+            });
+          }
+          setCalendarEvents(events);
         } catch (error) {
           console.error("Error fetching enrolled courses:", error);
         }
