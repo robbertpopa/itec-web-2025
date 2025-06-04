@@ -56,20 +56,31 @@ export default function Page() {
 
         setLoading(true);
 
-        try {
-          const dbReference = dbRef(db());
-          const programmedLessonsRef = child(
-            dbReference,
-            `users/${user.uid}/programmedLessons`
-          );
-          const programmedLessonsSnapshot = await get(programmedLessonsRef);
+        const events: CalendarEvent[] = [];
 
-          if (programmedLessonsSnapshot.exists()) {
-            const programmedLessonsData = programmedLessonsSnapshot.val();
-            const markedDays = Object.values(programmedLessonsData).map(
-              (lesson: any) => new Date(lesson.date)
+        try {
+          const token = await user.getIdToken();
+          const response = await fetch(
+            `/api/users/${user.uid}/programmedLessons`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            const markedDays = data.programmedLessons.map(
+              (l: any) => new Date(l.date)
             );
             setMarkedLearningDays(markedDays);
+            events.push(
+              ...markedDays.map((date: Date, idx: number) => ({
+                id: `programmed-${idx}`,
+                title: "Planned Learning",
+                date,
+                courseId: "",
+              }))
+            );
           }
         } catch (error) {
           console.error("Error fetching programmed lessons:", error);
@@ -241,7 +252,6 @@ export default function Page() {
             ).filter(Boolean) as Course[];
             setEnrolledCourses(resolvedCourses);
 
-            const events: CalendarEvent[] = [];
             resolvedCourses.forEach((course) => {
               if (!course) return;
 
@@ -258,9 +268,8 @@ export default function Page() {
                 });
               }
             });
-
-            setCalendarEvents(events);
           }
+          setCalendarEvents(events);
         } catch (error) {
           console.error("Error fetching enrolled courses:", error);
         }
