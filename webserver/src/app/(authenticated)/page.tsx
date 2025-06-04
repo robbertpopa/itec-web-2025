@@ -201,23 +201,26 @@ export default function Page() {
             setEnrolledCourses(resolvedCourses);
             
             const events: CalendarEvent[] = [];
-            resolvedCourses.forEach(course => {
-              if (!course) return;
-              
-              const today = new Date(2025, 3, 6);
-              for (let i = 0; i < 3; i++) {
-                const date = new Date(today);
-                date.setDate(date.getDate() + Math.floor(Math.random() * 30));
-                
+            resolvedCourses.forEach((course) => {
+              if (!course || !course.scheduledDate) return;
+
+              const firstDate = new Date(course.scheduledDate);
+              const occurrences = course.recurrence === 'weekly' ? 4 : 1;
+              for (let i = 0; i < occurrences; i++) {
+                const date = new Date(firstDate);
+                if (course.recurrence === 'weekly') {
+                  date.setDate(firstDate.getDate() + i * 7);
+                }
+
                 events.push({
                   id: `${course.id}-${i}`,
                   title: course.title || 'Untitled Course',
-                  date: date,
-                  courseId: course.id
+                  date,
+                  courseId: course.id,
+                  status: date < new Date() ? 'PAST' : 'UPCOMING',
                 });
               }
             });
-            
             setCalendarEvents(events);
           }
         } catch (error) {
