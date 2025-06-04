@@ -42,7 +42,11 @@ export async function GET(
       return NextResponse.json({ success: true, participants: [] });
     }
     const usersData = usersSnapshot.val();
-    const participants: Array<{ id: string; fullName: string; profilePicture: string }> = [];
+    const participants: Array<{
+      id: string;
+      fullName: string;
+      profilePicture: string;
+    }> = [];
 
     for (const uid of Object.keys(usersData)) {
       const userData = usersData[uid];
@@ -71,7 +75,9 @@ export async function GET(
   } catch (error) {
     console.error("Error fetching participants:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
+      {
+        error: error instanceof Error ? error.message : "Internal server error",
+      },
       { status: 500 }
     );
   }

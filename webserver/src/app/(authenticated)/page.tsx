@@ -32,7 +32,7 @@ type Course = {
   ownerProfilePicture?: string;
   scheduledDate?: string;
   recurrence?: "once" | "weekly";
-}; 
+};
 
 type CalendarEvent = {
   id: string;
@@ -537,8 +537,8 @@ export default function Page() {
                           event.status === "PAST"
                             ? "bg-base-300 text-base-content"
                             : event.courseId
-                            ? "bg-primary text-primary-content"
-                            : "bg-success text-primary-content"
+                              ? "bg-primary text-primary-content"
+                              : "bg-success text-primary-content"
                         )}
                       >
                         <div className="text-xs">

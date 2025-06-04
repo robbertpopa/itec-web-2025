@@ -25,10 +25,7 @@ export async function GET(
   try {
     const decodedToken = await auth.verifyIdToken(token);
     if (decodedToken.uid !== userId) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     const invitesRef = db.ref(`/users/${userId}/invitedCourses`);
@@ -55,7 +52,9 @@ export async function GET(
   } catch (error) {
     console.error("Error fetching invites:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
+      {
+        error: error instanceof Error ? error.message : "Internal server error",
+      },
       { status: 500 }
     );
   }
@@ -106,7 +105,9 @@ export async function POST(
   } catch (error) {
     console.error("Error accepting invite:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
+      {
+        error: error instanceof Error ? error.message : "Internal server error",
+      },
       { status: 500 }
     );
   }
@@ -152,7 +153,9 @@ export async function DELETE(
   } catch (error) {
     console.error("Error declining invite:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
+      {
+        error: error instanceof Error ? error.message : "Internal server error",
+      },
       { status: 500 }
     );
   }

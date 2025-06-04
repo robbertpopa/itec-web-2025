@@ -491,65 +491,69 @@ export default function CourseDetails({
                 />
                 {liked ? "Liked" : "Like"}
               </button>
-          </div>
-        </div>
-
-        {isOwner && (
-          <div className="card flex flex-col rounded-lg shadow-md w-full p-6 gap-4">
-            <h2 className="text-xl font-semibold">Invite Participant</h2>
-            <input
-              type="text"
-              className="input input-bordered w-full"
-              placeholder="User ID"
-              value={inviteId}
-              onChange={(e) => setInviteId(e.target.value)}
-            />
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={handleInvite}
-              disabled={inviteLoading || !inviteId.trim()}
-            >
-              {inviteLoading ? "Inviting..." : "Send Invite"}
-            </button>
-          </div>
-        )}
-
-        <div className="card flex flex-col rounded-lg shadow-md w-full p-6 h-fit gap-6">
-          <h2 className="text-xl font-semibold">Participants ({participants.length})</h2>
-          {participantsLoading ? (
-            <div className="flex justify-center p-4">
-              <span className="loading loading-spinner" />
             </div>
-          ) : (
-            <div className="avatar-group -space-x-4">
-              {participants.slice(0, 7).map((p) => (
-                <div key={p.id} className="avatar">
-                  <div className="w-10 h-10 rounded-full overflow-hidden">
-                    {p.profilePicture ? (
-                      <img
-                        src={`${p.profilePicture}?t=${new Date().getTime()}`}
-                        alt={p.fullName}
-                        className="object-cover w-full h-full"
-                      />
-                    ) : (
-                      <div className="bg-neutral-focus text-neutral-content rounded-full w-10 h-10 flex items-center justify-center">
-                        <span className="text-sm">{getInitials(p.fullName)}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-              {participants.length > 7 && (
-                <div className="avatar placeholder">
-                  <div className="w-10 bg-neutral text-neutral-content">
-                    <span>+{participants.length - 7}</span>
-                  </div>
-                </div>
-              )}
+          </div>
+
+          {isOwner && (
+            <div className="card flex flex-col rounded-lg shadow-md w-full p-6 gap-4">
+              <h2 className="text-xl font-semibold">Invite Participant</h2>
+              <input
+                type="text"
+                className="input input-bordered w-full"
+                placeholder="User ID"
+                value={inviteId}
+                onChange={(e) => setInviteId(e.target.value)}
+              />
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleInvite}
+                disabled={inviteLoading || !inviteId.trim()}
+              >
+                {inviteLoading ? "Inviting..." : "Send Invite"}
+              </button>
             </div>
           )}
-        </div>
+
+          <div className="card flex flex-col rounded-lg shadow-md w-full p-6 h-fit gap-6">
+            <h2 className="text-xl font-semibold">
+              Participants ({participants.length})
+            </h2>
+            {participantsLoading ? (
+              <div className="flex justify-center p-4">
+                <span className="loading loading-spinner" />
+              </div>
+            ) : (
+              <div className="avatar-group -space-x-4">
+                {participants.slice(0, 7).map((p) => (
+                  <div key={p.id} className="avatar">
+                    <div className="w-10 h-10 rounded-full overflow-hidden">
+                      {p.profilePicture ? (
+                        <img
+                          src={`${p.profilePicture}?t=${new Date().getTime()}`}
+                          alt={p.fullName}
+                          className="object-cover w-full h-full"
+                        />
+                      ) : (
+                        <div className="bg-neutral-focus text-neutral-content rounded-full w-10 h-10 flex items-center justify-center">
+                          <span className="text-sm">
+                            {getInitials(p.fullName)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {participants.length > 7 && (
+                  <div className="avatar placeholder">
+                    <div className="w-10 bg-neutral text-neutral-content">
+                      <span>+{participants.length - 7}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
