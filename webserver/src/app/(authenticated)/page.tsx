@@ -56,7 +56,7 @@ export default function Page() {
 
         setLoading(true);
 
-        let events: CalendarEvent[] = [];
+        const events: CalendarEvent[] = [];
 
         try {
           const token = await user.getIdToken();
