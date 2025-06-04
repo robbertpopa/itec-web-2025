@@ -45,6 +45,7 @@ export default async function Page({
           name: course.name,
           description: course.description,
           lessons: course.lessons,
+          ownerId: course.ownerId,
         }}
         owner={{
           displayName: await getOwnerDisplayName(course.ownerId),
