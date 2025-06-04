@@ -7,4 +7,5 @@ export default interface CoursePreview {
   scheduledDate?: string;
   recurrence?: "once" | "weekly";
   status?: "UPCOMING" | "PAST";
+  access?: "open" | "invite";
 }

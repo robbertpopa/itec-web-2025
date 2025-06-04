@@ -32,6 +32,9 @@ export default function CourseDetails({
     name: string;
     description?: string;
     lessons?: string[];
+    scheduledDate?: string;
+    recurrence?: "once" | "weekly";
+    access?: "open" | "invite";
   };
   owner: { displayName?: string; profilePicture?: string };
   imageUrl: string | null;
@@ -46,7 +49,13 @@ export default function CourseDetails({
   const [isCheckingEnrollment, setIsCheckingEnrollment] = useState(true);
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
   const [isOwner, setIsOwner] = useState(false);
-  const [inviteId, setInviteId] = useState("");
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [emailOptions, setEmailOptions] = useState<{
+    id: string;
+    email?: string | null;
+    name?: string | null;
+  }[]>([]);
+  const [inviteUserId, setInviteUserId] = useState("");
   const [inviteLoading, setInviteLoading] = useState(false);
   const [participants, setParticipants] = useState<
     {
@@ -82,6 +91,29 @@ export default function CourseDetails({
   }, [course.id]);
 
   useEffect(() => {
+    const loadSuggestions = async () => {
+      if (!inviteEmail.trim()) {
+        setEmailOptions([]);
+        return;
+      }
+      try {
+        const token = await auth.currentUser?.getIdToken();
+        const res = await fetch(`/api/users?search=${encodeURIComponent(inviteEmail)}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setEmailOptions(data.users || []);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    const handler = setTimeout(loadSuggestions, 300);
+    return () => clearTimeout(handler);
+  }, [inviteEmail]);
+
+  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         setHasAccess(false);
@@ -101,15 +133,15 @@ export default function CourseDetails({
           `/courses/${course.id}/invitedUsers/${user.uid}`,
         );
         const snapshot = await get(invitationRef);
-        if (snapshot.exists()) {
+        if (snapshot.exists() || course.access === "open") {
           setHasAccess(true);
         } else {
           setHasAccess(false);
           router.push("/courses");
         }
       } catch {
-        setHasAccess(false);
-        router.push("/courses");
+        setHasAccess(course.access === "open");
+        if (course.access !== "open") router.push("/courses");
       }
     });
 
@@ -156,6 +188,34 @@ export default function CourseDetails({
     } catch {
       showNotification("Failed to copy link", "error");
     }
+  };
+
+  const handleAddToCalendar = () => {
+    if (!course.scheduledDate) return;
+    const start = new Date(course.scheduledDate);
+    const end = new Date(start.getTime() + 60 * 60 * 1000);
+    const toICSDate = (d: Date) =>
+      d.toISOString().replace(/[-:]|\.\d{3}/g, "").slice(0, 15) + "Z";
+
+    const ics = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "BEGIN:VEVENT",
+      `DTSTART:${toICSDate(start)}`,
+      `DTEND:${toICSDate(end)}`,
+      `SUMMARY:${course.name}`,
+      `URL:${window.location.href}`,
+      "END:VEVENT",
+      "END:VCALENDAR",
+    ].join("\n");
+
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${course.name}.ics`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleAddLesson = async () => {
@@ -274,7 +334,7 @@ export default function CourseDetails({
   };
 
   const handleInvite = async () => {
-    if (!inviteId.trim()) return;
+    if (!inviteUserId) return;
     try {
       setInviteLoading(true);
       const token = await auth.currentUser?.getIdToken();
@@ -284,11 +344,12 @@ export default function CourseDetails({
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userId: inviteId.trim() }),
+        body: JSON.stringify({ userId: inviteUserId }),
       });
       if (response.ok) {
         showNotification("User invited", "success");
-        setInviteId("");
+        setInviteEmail("");
+        setInviteUserId("");
         fetchParticipants();
       } else {
         const err = await response.json();
@@ -435,7 +496,7 @@ export default function CourseDetails({
         <div className="w-1/3 h-fit gap-8 flex flex-col">
           <div className="card flex flex-col rounded-lg shadow-md w-full p-6 h-fit gap-6">
             <div className="font-semibold text-lg">Registration</div>
-            {isCheckingEnrollment ? (
+            {isOwner ? null : isCheckingEnrollment ? (
               <button type="button" className="btn btn-primary w-full" disabled>
                 <span className="loading loading-spinner loading-sm"></span>
                 Checking enrollment...
@@ -469,6 +530,7 @@ export default function CourseDetails({
             <button
               type="button"
               className="btn btn-outline btn-secondary w-full flex items-center justify-center gap-2"
+              onClick={handleAddToCalendar}
             >
               <Calendar size={18} />
               Add to Calendar
@@ -503,18 +565,63 @@ export default function CourseDetails({
               <input
                 type="text"
                 className="input input-bordered w-full"
-                placeholder="User ID"
-                value={inviteId}
-                onChange={(e) => setInviteId(e.target.value)}
+                placeholder="Search email"
+                value={inviteEmail}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setInviteEmail(val);
+                  const match = emailOptions.find(
+                    (o) => o.email === val || o.name === val
+                  );
+                  setInviteUserId(match ? match.id : "");
+                }}
+                list="email-suggestions"
               />
+              <datalist id="email-suggestions">
+                {emailOptions.map((opt) => (
+                  <option key={opt.id} value={opt.email || opt.name || ""} />
+                ))}
+              </datalist>
               <button
                 type="button"
                 className="btn btn-primary"
                 onClick={handleInvite}
-                disabled={inviteLoading || !inviteId.trim()}
+                disabled={inviteLoading || !inviteUserId}
               >
                 {inviteLoading ? "Inviting..." : "Send Invite"}
               </button>
+            </div>
+          )}
+
+          {isOwner && (
+            <div className="card flex flex-col rounded-lg shadow-md w-full p-6 gap-4">
+              <h2 className="text-xl font-semibold">Course Access</h2>
+              <select
+                className="select select-bordered w-full"
+                value={course.access || 'open'}
+                onChange={async (e) => {
+                  const val = e.target.value;
+                  try {
+                    const token = await auth.currentUser?.getIdToken();
+                    await fetch(`/api/courses/${course.id}`, {
+                      method: 'PATCH',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                      },
+                      body: JSON.stringify({ access: val }),
+                    });
+                    course.access = val as 'open' | 'invite';
+                    showNotification('Course updated', 'success');
+                  } catch (err) {
+                    console.error(err);
+                    showNotification('Failed to update', 'error');
+                  }
+                }}
+              >
+                <option value="open">Open</option>
+                <option value="invite">Invite Only</option>
+              </select>
             </div>
           )}
 

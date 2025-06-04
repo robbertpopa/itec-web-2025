@@ -34,13 +34,16 @@ export default async function Page({ params }:
     }) : [null]
 
     return (<>
-        <CourseDetails 
+        <CourseDetails
             course={{
                 id: courseId,
                 ownerId: course.ownerId,
                 name: course.name,
                 description: course.description,
                 lessons: course.lessons,
+                scheduledDate: course.scheduledDate,
+                recurrence: course.recurrence,
+                access: course.access,
             }}
             owner={{
                 displayName: await getOwnerDisplayName(course.ownerId),

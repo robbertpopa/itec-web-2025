@@ -127,10 +127,12 @@ export default function CourseCard({
                 {loading ? (
                     <div className="w-10 h-10 bg-gray-300 rounded-full animate-pulse" />
                 ) : displayProfilePicture ? (
-                    <img
+                    <Image
                     src={`${displayProfilePicture}?t=${new Date().getTime()}`}
                     alt=""
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="40px"
+                    className="object-cover"
                     />
                 ) : (
                     <div className="bg-neutral-focus text-neutral-content rounded-full w-10 h-10 flex items-center justify-center">

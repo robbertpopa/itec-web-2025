@@ -14,6 +14,7 @@ export default function CreateCourseForm({ onClose, onSuccess }: CreateCourseFor
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [startDate, setStartDate] = useState("");
   const [recurrence, setRecurrence] = useState("once");
+  const [access, setAccess] = useState("open");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -81,6 +82,7 @@ export default function CreateCourseForm({ onClose, onSuccess }: CreateCourseFor
       formData.append('description', description);
       formData.append('startDate', startDate);
       formData.append('recurrence', recurrence);
+      formData.append('access', access);
       if (image) {
         formData.append('image', image);
       }
@@ -210,6 +212,20 @@ export default function CreateCourseForm({ onClose, onSuccess }: CreateCourseFor
           >
             <option value="once">One Time</option>
             <option value="weekly">Weekly</option>
+          </select>
+        </label>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-sm font-medium">
+          Access
+          <select
+            className="select select-bordered w-full mt-1"
+            value={access}
+            onChange={(e) => setAccess(e.target.value)}
+          >
+            <option value="open">Open</option>
+            <option value="invite">Invite Only</option>
           </select>
         </label>
       </div>

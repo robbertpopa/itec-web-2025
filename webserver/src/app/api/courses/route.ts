@@ -18,11 +18,12 @@ async function parseFormData(req: NextRequest) {
   const imageFile = formData.get('image') as File | null;
   const startDate = formData.get('startDate') as string;
   const recurrence = (formData.get('recurrence') as string) || 'once';
+  const access = (formData.get('access') as string) || 'open';
 
   const buffer = imageFile ? Buffer.from(await imageFile.arrayBuffer()) : null;
 
   return {
-    fields: { name, description, startDate, recurrence },
+    fields: { name, description, startDate, recurrence, access },
     file: buffer
       ? { buffer, originalName: imageFile?.name, mime: imageFile?.type }
       : null,
@@ -86,6 +87,7 @@ export async function POST(req: NextRequest) {
       ownerId: userId,
       scheduledDate: fields.startDate || '',
       recurrence: fields.recurrence || 'once',
+      access: fields.access || 'open',
       status: 'UPCOMING',
       createdAt: new Date().toISOString(),
     });
