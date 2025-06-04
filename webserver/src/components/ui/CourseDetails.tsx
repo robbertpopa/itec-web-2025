@@ -28,6 +28,7 @@ export default function CourseDetails({
 }: {
   course: {
     id: string;
+    ownerId: string;
     name: string;
     description?: string;
     lessons?: string[];

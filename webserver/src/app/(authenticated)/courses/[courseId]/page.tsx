@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import CourseDetails from "@/components/ui/CourseDetails";
 import { firebase } from "lib/firebaseServer"
 import Course from "lib/models/course";
@@ -36,10 +37,11 @@ export default async function Page({ params }:
         <CourseDetails 
             course={{
                 id: courseId,
+                ownerId: course.ownerId,
                 name: course.name,
                 description: course.description,
                 lessons: course.lessons,
-            }} 
+            }}
             owner={{
                 displayName: await getOwnerDisplayName(course.ownerId),
                 profilePicture: owner.photoURL

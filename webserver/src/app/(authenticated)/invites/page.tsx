@@ -19,7 +19,7 @@ export default function Page() {
   const { refresh } = useInviteCount();
 
   const fetchInvites = async () => {
-    const user = auth().currentUser;
+    const user = auth.currentUser;
     if (!user) return;
     try {
       const token = await user.getIdToken();
@@ -42,7 +42,7 @@ export default function Page() {
   }, []);
 
   const handleAccept = async (courseId: string) => {
-    const user = auth().currentUser;
+    const user = auth.currentUser;
     if (!user) return;
     try {
       const token = await user.getIdToken();
@@ -69,7 +69,7 @@ export default function Page() {
   };
 
   const handleDecline = async (courseId: string) => {
-    const user = auth().currentUser;
+    const user = auth.currentUser;
     if (!user) return;
     try {
       const token = await user.getIdToken();
