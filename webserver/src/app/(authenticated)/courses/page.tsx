@@ -1,7 +1,7 @@
 "use client"
 import { ref as dbRef, child, get, query, orderByKey } from "firebase/database";
 import { ref as storageRef, getDownloadURL } from "firebase/storage";
-import { db, storage } from "lib/firebase";
+import { db, storage, auth } from "lib/firebase";
 import { useState, useEffect } from "react";
 import CourseCard from "@/components/ui/CourseCard";
 import CoursePreview from "lib/models/coursePreview";
@@ -12,8 +12,9 @@ export default function Page() {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState<number>(1);
-    const [totalPages, setTotalPages] = useState<number>(1);
     const [searchTerm, setSearchTerm] = useState<string>("");
+    const [filter, setFilter] = useState<"all" | "created" | "joined">("all");
+    const [enrollments, setEnrollments] = useState<Record<string, unknown>>({});
     const ITEMS_PER_PAGE = 8;
 
     const fetchCourses = async (page: number = 1) => {
@@ -21,12 +22,6 @@ export default function Page() {
         try {
             const dbReference = dbRef(db);
             
-            const totalCountSnapshot = await get(child(dbReference, "/courses"));
-            if (totalCountSnapshot.exists()) {
-                const totalCourses = Object.keys(totalCountSnapshot.val()).length;
-                const calculatedTotalPages = Math.ceil(totalCourses / ITEMS_PER_PAGE);
-                setTotalPages(calculatedTotalPages);
-            }
 
             const coursesQuery = query(
                 child(dbReference, "/courses"),
@@ -91,7 +86,6 @@ export default function Page() {
                 setCurrentPage(page);
             } else {
                 setCourseData([]);
-                setTotalPages(1);
             }
         } catch (error) {
             console.error(error);
@@ -101,19 +95,32 @@ export default function Page() {
         }
     };
 
+    const fetchEnrollments = async () => {
+        const user = auth.currentUser;
+        if (!user) return;
+        try {
+            const token = await user.getIdToken();
+            const res = await fetch('/api/enrollments', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setEnrollments(data.enrollments || {});
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
     useEffect(() => {
         fetchCourses();
+        fetchEnrollments();
     }, []);
 
     const handlePageChange = (page: number) => {
-        if (page >= 1 && page <= (searchTerm ? filteredTotalPages : totalPages) && page !== currentPage) {
-            if (searchTerm) {
-                setCurrentPage(page);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            } else {
-                fetchCourses(page);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
+        if (page >= 1 && page <= filteredTotalPages && page !== currentPage) {
+            setCurrentPage(page);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
 
@@ -124,37 +131,53 @@ export default function Page() {
     };
 
     const goToNextPage = () => {
-        if (currentPage < (searchTerm ? filteredTotalPages : totalPages)) {
+        if (currentPage < filteredTotalPages) {
             handlePageChange(currentPage + 1);
         }
     };
 
-    const filteredCourses = searchTerm
-        ? courseData.filter(course => 
-            course.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const searchFiltered = searchTerm
+        ? courseData.filter(course =>
+            course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (course.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
           )
         : courseData;
-    
-    const filteredTotalPages = searchTerm
-        ? Math.max(1, Math.ceil(filteredCourses.length / ITEMS_PER_PAGE))
-        : totalPages;
 
-    const paginatedCourses = searchTerm
-        ? filteredCourses.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
-        : filteredCourses;
+    const filteredCourses = searchFiltered.filter(course => {
+        const user = auth.currentUser;
+        if (filter === "created") {
+            return user && course.ownerId === user.uid;
+        }
+        if (filter === "joined") {
+            return enrollments[course.id] !== undefined;
+        }
+        return true;
+    });
+    
+    const filteredTotalPages = Math.max(1, Math.ceil(filteredCourses.length / ITEMS_PER_PAGE));
+
+    const paginatedCourses = filteredCourses.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm]);
+    }, [searchTerm, filter]);
 
     return (            
         <div className="flex flex-col">
-            <div className="w-full container flex mx-auto justify-center items-center">
+            <div className="w-full container flex mx-auto justify-center items-center gap-4">
                 <label className="input flex justify-center items-center md:max-w-150 w-full">
                     <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g strokeLinejoin="round" strokeLinecap="round" strokeWidth="2.5" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></g></svg>
                     <input type="search" className="grow" placeholder="Search courses..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                 </label>
+                <select
+                    className="select select-bordered w-36"
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value as "all" | "created" | "joined")}
+                >
+                    <option value="all">All</option>
+                    <option value="created">Created</option>
+                    <option value="joined">Joined</option>
+                </select>
             </div>
             <div className="container mx-auto px-4 py-8 flex flex-col">
                 {error && (

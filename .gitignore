@@ -1,3 +1,5 @@
 jobs/.env
 jobs/.firebase-service-account.json
 jobs/__pycache__
+webserver/.yarnrc.yml
+webserver/node_modules
