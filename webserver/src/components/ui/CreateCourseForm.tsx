@@ -12,9 +12,13 @@ export default function CreateCourseForm({ onClose, onSuccess }: CreateCourseFor
   const [description, setDescription] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState("");
+  const [recurrence, setRecurrence] = useState("once");
+  const [access, setAccess] = useState("open");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const minDate = new Date().toISOString().slice(0, 16);
   
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -57,6 +61,16 @@ export default function CreateCourseForm({ onClose, onSuccess }: CreateCourseFor
       return;
     }
     
+    if (!startDate) {
+      setError('Start date and time is required');
+      return;
+    }
+    const chosenDate = new Date(startDate);
+    if (isNaN(chosenDate.getTime()) || chosenDate <= new Date()) {
+      setError('Start date must be in the future');
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
     
@@ -66,6 +80,9 @@ export default function CreateCourseForm({ onClose, onSuccess }: CreateCourseFor
       const formData = new FormData();
       formData.append('name', name);
       formData.append('description', description);
+      formData.append('startDate', startDate);
+      formData.append('recurrence', recurrence);
+      formData.append('access', access);
       if (image) {
         formData.append('image', image);
       }
@@ -168,6 +185,48 @@ export default function CreateCourseForm({ onClose, onSuccess }: CreateCourseFor
             rows={4}
             className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
             />
+        </label>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-sm font-medium floating-label">
+          <span>Start Date &amp; Time</span>
+          <input
+            type="datetime-local"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            required
+            min={minDate}
+          />
+        </label>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-sm font-medium">
+          Occurrence
+          <select
+            className="select select-bordered w-full mt-1"
+            value={recurrence}
+            onChange={(e) => setRecurrence(e.target.value)}
+          >
+            <option value="once">One Time</option>
+            <option value="weekly">Weekly</option>
+          </select>
+        </label>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-sm font-medium">
+          Access
+          <select
+            className="select select-bordered w-full mt-1"
+            value={access}
+            onChange={(e) => setAccess(e.target.value)}
+          >
+            <option value="open">Open</option>
+            <option value="invite">Invite Only</option>
+          </select>
         </label>
       </div>
       

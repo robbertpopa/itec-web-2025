@@ -28,11 +28,19 @@ export async function POST(req: NextRequest) {
     
     const courseRef = db.ref(`/courses/${courseId}`);
     const courseSnapshot = await courseRef.get();
-    
+
     if (!courseSnapshot.exists()) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }
-    
+    const courseData = courseSnapshot.val();
+    if (
+      courseData.ownerId !== userId &&
+      courseData.access !== 'open' &&
+      !courseData.invitedUsers?.[userId]
+    ) {
+      return NextResponse.json({ error: 'Not invited to this course' }, { status: 403 });
+    }
+
     const enrollmentData = {
       courseId,
       enrolledAt: new Date().toISOString(),

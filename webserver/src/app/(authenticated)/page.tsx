@@ -37,7 +37,6 @@ export default function Page() {
   const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [markedLearningDays, setMarkedLearningDays] = useState<Date[]>([]);
   const router = useRouter();
   const { showNotification } = useNotification();
 
@@ -49,21 +48,7 @@ export default function Page() {
 
         setLoading(true);
         
-        try {
-          const dbReference = dbRef(db);
-          const programmedLessonsRef = child(dbReference, `users/${user.uid}/programmedLessons`);
-          const programmedLessonsSnapshot = await get(programmedLessonsRef);
-          
-          if (programmedLessonsSnapshot.exists()) {
-            const programmedLessonsData = programmedLessonsSnapshot.val();
-            const markedDays = Object.values(programmedLessonsData).map(
-              (lesson: any) => new Date(lesson.date)
-            );
-            setMarkedLearningDays(markedDays);
-          }
-        } catch (error) {
-          console.error('Error fetching programmed lessons:', error);
-        }
+
 
         try {
           const dbReference = dbRef(db);
@@ -201,23 +186,26 @@ export default function Page() {
             setEnrolledCourses(resolvedCourses);
             
             const events: CalendarEvent[] = [];
-            resolvedCourses.forEach(course => {
-              if (!course) return;
-              
-              const today = new Date(2025, 3, 6);
-              for (let i = 0; i < 3; i++) {
-                const date = new Date(today);
-                date.setDate(date.getDate() + Math.floor(Math.random() * 30));
-                
+            resolvedCourses.forEach((course) => {
+              if (!course || !course.scheduledDate) return;
+
+              const firstDate = new Date(course.scheduledDate);
+              const occurrences = course.recurrence === 'weekly' ? 4 : 1;
+              for (let i = 0; i < occurrences; i++) {
+                const date = new Date(firstDate);
+                if (course.recurrence === 'weekly') {
+                  date.setDate(firstDate.getDate() + i * 7);
+                }
+
                 events.push({
                   id: `${course.id}-${i}`,
                   title: course.title || 'Untitled Course',
-                  date: date,
-                  courseId: course.id
+                  date,
+                  courseId: course.id,
+                  status: date < new Date() ? 'PAST' : 'UPCOMING',
                 });
               }
             });
-            
             setCalendarEvents(events);
           }
         } catch (error) {
@@ -233,76 +221,6 @@ export default function Page() {
     fetchData();
   }, []);
 
-  const handleMarkDay = async (date: Date, isMarked: boolean) => {
-    try {
-      const user = auth.currentUser;
-      if (!user) {
-        showNotification("You must be logged in to mark days", "error");
-        return;
-      }
-
-      if (isMarked) {
-        setMarkedLearningDays(prev => [...prev, date]);
-      } else {
-        setMarkedLearningDays(prev => 
-          prev.filter(d => 
-            !(d.getDate() === date.getDate() && 
-              d.getMonth() === date.getMonth() && 
-              d.getFullYear() === date.getFullYear())
-          )
-        );
-      }
-      
-      const token = await user.getIdToken();
-      
-      const response = await fetch(`/api/users/${user.uid}/programmedLessons`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          date: date.toISOString(),
-          isMarked
-        })
-      });
-      
-      if (response.ok) {
-        showNotification(
-          isMarked 
-            ? `Marked ${date.toLocaleDateString()} for learning` 
-            : `Unmarked ${date.toLocaleDateString()}`, 
-          "success"
-        );
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update learning schedule');
-      }
-    } catch (error) {
-      console.error('Error updating programmed lesson:', error);
-      showNotification("Failed to update your learning schedule", "error");
-      
-      setMarkedLearningDays(prev => {
-        const dateExists = prev.some(d => 
-          d.getDate() === date.getDate() && 
-          d.getMonth() === date.getMonth() && 
-          d.getFullYear() === date.getFullYear()
-        );
-        
-        if (isMarked && dateExists) {
-          return prev.filter(d => 
-            !(d.getDate() === date.getDate() && 
-              d.getMonth() === date.getMonth() && 
-              d.getFullYear() === date.getFullYear())
-          );
-        } else if (!isMarked && !dateExists) {
-          return [...prev, date];
-        }
-        
-        return prev;
-      });
-    }
-  };
 
   return (
     <div className="py-8 px-4 max-w-7xl mx-auto">
@@ -389,9 +307,7 @@ export default function Page() {
               
               <Calendar
                 events={calendarEvents}
-                markedDays={markedLearningDays}
                 onEventClick={(event) => router.push(`/courses/${event.courseId}`)}
-                onMarkDay={handleMarkDay}
               />
               
               <div className="divider"></div>
@@ -399,13 +315,8 @@ export default function Page() {
               <div className="mt-2 space-y-4">
                 <h3 className="font-semibold text-lg">Upcoming Lessons</h3>
                 
-                {[...calendarEvents, ...markedLearningDays.map((date, index) => ({
-                  id: `marked-${index}`,
-                  title: "Planned Learning",
-                  date,
-                  courseId: ""
-                }))]
-                  .filter(event => new Date(event.date) >= new Date(2025, 3, 6))
+                {calendarEvents
+                  .filter(event => new Date(event.date) >= new Date())
                   .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                   .slice(0, 3)
                   .map(event => (
@@ -433,7 +344,7 @@ export default function Page() {
                     </div>
                   ))}
                   
-                {calendarEvents.length === 0 && markedLearningDays.length === 0 && (
+                {calendarEvents.length === 0 && (
                   <div className="text-center py-4 text-base-content/70">
                     No upcoming lessons scheduled
                   </div>
