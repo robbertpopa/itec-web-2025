@@ -19,6 +19,7 @@ export default function CreateCourseForm({
   const [recurrence, setRecurrence] = useState("once");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const minDate = new Date().toISOString().slice(0, 16);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,6 +60,17 @@ export default function CreateCourseForm({
 
     if (!auth().currentUser) {
       setError("You must be logged in to create a course");
+      return;
+    }
+
+    if (!startDate) {
+      setError("Start date and time is required");
+      return;
+    }
+
+    const chosenDate = new Date(startDate);
+    if (isNaN(chosenDate.getTime()) || chosenDate <= new Date()) {
+      setError("Start date must be in the future");
       return;
     }
 
@@ -106,7 +118,7 @@ export default function CreateCourseForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 pb-6">
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
           {error}
@@ -194,6 +206,8 @@ export default function CreateCourseForm({
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
             className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            required
+            min={minDate}
           />
         </label>
       </div>

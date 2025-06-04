@@ -61,6 +61,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (!fields.startDate) {
+      return NextResponse.json(
+        { error: "Start date is required" },
+        { status: 400 }
+      );
+    }
+
+    const parsedDate = new Date(fields.startDate);
+    if (isNaN(parsedDate.getTime()) || parsedDate <= new Date()) {
+      return NextResponse.json(
+        { error: "Start date must be in the future" },
+        { status: 400 }
+      );
+    }
+
     const courseId = uuidv4();
 
     if (file?.buffer) {
