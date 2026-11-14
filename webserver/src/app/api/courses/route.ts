@@ -16,11 +16,14 @@ async function parseFormData(req: NextRequest) {
   const name = formData.get('name') as string;
   const description = formData.get('description') as string;
   const imageFile = formData.get('image') as File | null;
+  const startDate = formData.get('startDate') as string;
+  const recurrence = (formData.get('recurrence') as string) || 'once';
+  const access = (formData.get('access') as string) || 'open';
 
   const buffer = imageFile ? Buffer.from(await imageFile.arrayBuffer()) : null;
 
   return {
-    fields: { name, description },
+    fields: { name, description, startDate, recurrence, access },
     file: buffer
       ? { buffer, originalName: imageFile?.name, mime: imageFile?.type }
       : null,
@@ -60,6 +63,13 @@ export async function POST(req: NextRequest) {
     if (!fields.name) {
       return NextResponse.json({ error: 'Course name is required' }, { status: 400 });
     }
+    if (!fields.startDate) {
+      return NextResponse.json({ error: 'Start date is required' }, { status: 400 });
+    }
+    const parsedDate = new Date(fields.startDate);
+    if (isNaN(parsedDate.getTime()) || parsedDate <= new Date()) {
+      return NextResponse.json({ error: 'Start date must be in the future' }, { status: 400 });
+    }
 
     const courseId = uuidv4();
 
@@ -75,6 +85,10 @@ export async function POST(req: NextRequest) {
       name: fields.name,
       description: fields.description || '',
       ownerId: userId,
+      scheduledDate: fields.startDate || '',
+      recurrence: fields.recurrence || 'once',
+      access: fields.access || 'open',
+      status: 'UPCOMING',
       createdAt: new Date().toISOString(),
     });
 

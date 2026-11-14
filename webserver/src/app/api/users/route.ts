@@ -84,6 +84,19 @@ export async function GET(req: NextRequest) {
     
     const url = new URL(req.url);
     const queryUserId = url.searchParams.get('userId');
+    const searchQuery = url.searchParams.get('search');
+
+    if (searchQuery) {
+      const list = await auth.listUsers();
+      const matched = list.users.filter(u =>
+        u.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        u.displayName?.toLowerCase().includes(searchQuery.toLowerCase())
+      ).slice(0, 10);
+      return NextResponse.json({
+        success: true,
+        users: matched.map(u => ({ id: u.uid, email: u.email, name: u.displayName }))
+      });
+    }
     
     if (queryUserId) {
       const userRef = db.ref(`/users/${queryUserId}`);

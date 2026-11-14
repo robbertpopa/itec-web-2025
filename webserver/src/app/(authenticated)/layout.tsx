@@ -10,7 +10,8 @@ import CreateCourseForm from "@/components/ui/CreateCourseForm";
 import React, { createContext, useEffect, useState } from "react";
 import { get, ref } from "firebase/database";
 import { auth, db } from "lib/firebase";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
+import InviteCountContext from "lib/context/InviteCountContext";
 
 interface UserData {
   fullName: string;
@@ -30,25 +31,48 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
   useRequireEmailVerified();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [inviteCount, setInviteCount] = useState<number>(0);
   const router = useRouter();
 
   useEffect(() => {
   }, [userData?.profilePicture]);
 
+  const fetchInviteCount = async (uid: string) => {
+    try {
+      const invitesRef = ref(db, `users/${uid}/invitedCourses`);
+      const snap = await get(invitesRef);
+      const count = snap.exists() ? Object.keys(snap.val()).length : 0;
+      setInviteCount(count);
+    } catch (error) {
+      console.error("Error loading invites count", error);
+    }
+  };
+
+  const refreshInvites = async () => {
+    const user = auth.currentUser;
+    if (user) {
+      await fetchInviteCount(user.uid);
+    }
+  };
   useEffect(() => {
     const unsubscribe = auth.onIdTokenChanged(async (user) => {
       if (user) {
         const userRef = ref(db, `users/${user.uid}`);
         const snapshot = await get(userRef);
         setUserData(snapshot.val() ? { ...snapshot.val() } : null);
+        await fetchInviteCount(user.uid);
+      } else {
+        setUserData(null);
+        setInviteCount(0);
       }
     });
     return unsubscribe;
   }, []);
 
   return (
-    <UserContext.Provider value={userData}>
-      <div className="w-full h-full box-border">
+    <InviteCountContext.Provider value={{ count: inviteCount, refresh: refreshInvites }}>
+      <UserContext.Provider value={userData}>
+        <div className="w-full h-full box-border">
         <nav className="fixed top-0 left-0 w-full z-50 navbar bg-base-100 shadow px-6">
           <div className="navbar-start">
             <Link href="/" className="flex items-center gap-2">
@@ -112,7 +136,7 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
               <PlusCircle size={16} className="mr-1" />
               Create Course
             </button>
-            <button className="btn btn-ghost btn-circle">
+            <Link href="/invites" className="btn btn-ghost btn-circle">
               <div className="indicator">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -128,9 +152,13 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
                     d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
                   />
                 </svg>
-                <span className="badge badge-xs badge-primary indicator-item"></span>
+                {inviteCount > 0 && (
+                  <span className="badge badge-xs badge-primary indicator-item">
+                    {inviteCount}
+                  </span>
+                )}
               </div>
-            </button>
+            </Link>
             <Link href="/profile" className="no-underline">
               <div className="flex flex-row justify-center items-center gap-2 cursor-pointer">
                 <div className="avatar">
@@ -181,6 +209,7 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
           />
         </Modal>
       </div>
-    </UserContext.Provider>
+      </UserContext.Provider>
+    </InviteCountContext.Provider>
   );
 }
