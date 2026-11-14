@@ -1,14 +1,18 @@
 "use client";
 import { ref as dbRef, child, get, query, orderByKey } from "firebase/database";
 import { ref as storageRef, getDownloadURL } from "firebase/storage";
-import { db, storage } from "lib/firebase";
+import { db, storage, auth } from "lib/firebase";
 import { useState, useEffect } from "react";
 import CourseCard from "@/components/ui/CourseCard";
 import CoursePreview from "lib/models/coursePreview";
+
+interface CourseWithInvites extends CoursePreview {
+  invitedUsers?: Record<string, boolean>;
+}
 import Skeleton from "@/components/ui/Skeleton";
 
 export default function Page() {
-  const [courseData, setCourseData] = useState<CoursePreview[]>([]);
+  const [courseData, setCourseData] = useState<CourseWithInvites[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -20,31 +24,43 @@ export default function Page() {
     setLoading(true);
     try {
       const dbReference = dbRef(db());
+      const userId = auth().currentUser?.uid;
 
-      const totalCountSnapshot = await get(child(dbReference, "/courses"));
-      if (totalCountSnapshot.exists()) {
-        const totalCourses = Object.keys(totalCountSnapshot.val()).length;
-        const calculatedTotalPages = Math.ceil(totalCourses / ITEMS_PER_PAGE);
-        setTotalPages(calculatedTotalPages);
-      }
+      // total pages will be calculated after filtering accessible courses
 
       const coursesQuery = query(child(dbReference, "/courses"), orderByKey());
+      const enrollmentsSnapshot = userId
+        ? await get(child(dbReference, `/users/${userId}/enrollments`))
+        : null;
+      const enrolledIds = enrollmentsSnapshot?.exists()
+        ? Object.keys(enrollmentsSnapshot.val())
+        : [];
 
       const snapshot = await get(coursesQuery);
 
       if (snapshot.exists()) {
         const rawData = snapshot.val();
 
-        const allCourses: CoursePreview[] = Object.entries(rawData).map(
+        const allCourses: CourseWithInvites[] = Object.entries(rawData).map(
           ([id, value]) => ({
             id,
-            ...(value as Omit<CoursePreview, "id">),
+            ...(value as Omit<CourseWithInvites, "id">),
           })
         );
 
+        const accessibleCourses = allCourses.filter(
+          (course) =>
+            course.ownerId === userId ||
+            course.invitedUsers?.[userId as string] ||
+            enrolledIds.includes(course.id)
+        );
+
+        const totalFiltered = accessibleCourses.length;
+        setTotalPages(Math.max(1, Math.ceil(totalFiltered / ITEMS_PER_PAGE)));
+
         const startIndex = (page - 1) * ITEMS_PER_PAGE;
         const endIndex = startIndex + ITEMS_PER_PAGE;
-        const paginatedCourses = allCourses.slice(startIndex, endIndex);
+        const paginatedCourses = accessibleCourses.slice(startIndex, endIndex);
 
         const coursesWithImages = await Promise.all(
           paginatedCourses.map(async (course) => {

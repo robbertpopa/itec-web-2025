@@ -9,6 +9,7 @@ type CalendarEvent = {
   title: string;
   date: Date;
   courseId: string;
+  status: "UPCOMING" | "PAST";
 };
 
 interface CalendarProps {
@@ -240,7 +241,12 @@ export function Calendar({
                       {dayEvents.slice(0, 2).map((event) => (
                         <div
                           key={event.id}
-                          className="bg-primary/20 text-primary text-xs mb-1 truncate rounded px-1"
+                          className={cn(
+                            "text-xs mb-1 truncate rounded px-1",
+                            event.status === "PAST"
+                              ? "bg-base-300 text-base-content"
+                              : "bg-primary/20 text-primary"
+                          )}
                           onClick={(e) => {
                             e.stopPropagation();
                             if (onEventClick) {
