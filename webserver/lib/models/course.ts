@@ -4,4 +4,7 @@ export default interface Course {
   name: string;
   description?: string;
   lessons?: string[];
+  scheduledDate?: string;
+  recurrence?: "once" | "weekly";
+  status?: "UPCOMING" | "PAST";
 }

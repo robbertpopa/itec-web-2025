@@ -4,4 +4,7 @@ export default interface CoursePreview {
   name: string;
   description?: string;
   imageUrl?: string;
+  scheduledDate?: string;
+  recurrence?: "once" | "weekly";
+  status?: "UPCOMING" | "PAST";
 }

@@ -30,6 +30,8 @@ type Course = {
   imageUrl?: string;
   authorName?: string;
   ownerProfilePicture?: string;
+  scheduledDate?: string;
+  recurrence?: "once" | "weekly";
 };
 
 type CalendarEvent = {
@@ -37,6 +39,7 @@ type CalendarEvent = {
   title: string;
   date: Date;
   courseId: string;
+  status: "UPCOMING" | "PAST";
 };
 
 export default function Page() {
@@ -45,6 +48,7 @@ export default function Page() {
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [markedLearningDays, setMarkedLearningDays] = useState<Date[]>([]);
+  const [viewPastEvents, setViewPastEvents] = useState(false);
   const router = useRouter();
   const { showNotification } = useNotification();
 
@@ -79,6 +83,7 @@ export default function Page() {
                 title: "Planned Learning",
                 date,
                 courseId: "",
+                status: date < new Date() ? "PAST" : "UPCOMING",
               }))
             );
           }
@@ -253,18 +258,22 @@ export default function Page() {
             setEnrolledCourses(resolvedCourses);
 
             resolvedCourses.forEach((course) => {
-              if (!course) return;
+              if (!course || !course.scheduledDate) return;
 
-              const today = new Date(2025, 3, 6);
-              for (let i = 0; i < 3; i++) {
-                const date = new Date(today);
-                date.setDate(date.getDate() + Math.floor(Math.random() * 30));
+              const firstDate = new Date(course.scheduledDate);
+              const occurrences = course.recurrence === "weekly" ? 4 : 1;
+              for (let i = 0; i < occurrences; i++) {
+                const date = new Date(firstDate);
+                if (course.recurrence === "weekly") {
+                  date.setDate(firstDate.getDate() + i * 7);
+                }
 
                 events.push({
                   id: `${course.id}-${i}`,
                   title: course.title || "Untitled Course",
-                  date: date,
+                  date,
                   courseId: course.id,
+                  status: date < new Date() ? "PAST" : "UPCOMING",
                 });
               }
             });
@@ -473,7 +482,21 @@ export default function Page() {
               <div className="divider"></div>
 
               <div className="mt-2 space-y-4">
-                <h3 className="font-semibold text-lg">Upcoming Lessons</h3>
+                <h3 className="font-semibold text-lg">Lessons</h3>
+                <div className="tabs mb-2">
+                  <a
+                    className={`tab tab-bordered ${!viewPastEvents ? "tab-active" : ""}`}
+                    onClick={() => setViewPastEvents(false)}
+                  >
+                    Upcoming
+                  </a>
+                  <a
+                    className={`tab tab-bordered ${viewPastEvents ? "tab-active" : ""}`}
+                    onClick={() => setViewPastEvents(true)}
+                  >
+                    Past
+                  </a>
+                </div>
 
                 {[
                   ...calendarEvents,
@@ -482,10 +505,13 @@ export default function Page() {
                     title: "Planned Learning",
                     date,
                     courseId: "",
+                    status: date < new Date() ? "PAST" : "UPCOMING",
                   })),
                 ]
-                  .filter(
-                    (event) => new Date(event.date) >= new Date(2025, 3, 6)
+                  .filter((event) =>
+                    viewPastEvents
+                      ? event.status === "PAST"
+                      : event.status === "UPCOMING"
                   )
                   .sort(
                     (a, b) =>
@@ -507,8 +533,12 @@ export default function Page() {
                     >
                       <div
                         className={cn(
-                          "text-primary-content rounded-md p-2 text-center w-12",
-                          event.courseId ? "bg-primary" : "bg-success"
+                          "rounded-md p-2 text-center w-12",
+                          event.status === "PAST"
+                            ? "bg-base-300 text-base-content"
+                            : event.courseId
+                              ? "bg-primary text-primary-content"
+                              : "bg-success text-primary-content"
                         )}
                       >
                         <div className="text-xs">
@@ -535,7 +565,7 @@ export default function Page() {
                 {calendarEvents.length === 0 &&
                   markedLearningDays.length === 0 && (
                     <div className="text-center py-4 text-base-content/70">
-                      No upcoming lessons scheduled
+                      No lessons scheduled
                     </div>
                   )}
               </div>
